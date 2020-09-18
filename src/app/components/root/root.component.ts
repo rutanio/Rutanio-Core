@@ -101,7 +101,7 @@ export class RootComponent implements OnInit, OnDestroy {
                 this.appState.shutdownInProgress = true;
                 this.cd.detectChanges();
 
-                // If the exit takes a very long time, we want to allow users to forcefully exit City Hub.
+                // If the exit takes a very long time, we want to allow users to forcefully exit Rutanio Core.
                 setTimeout(() => {
                     this.appState.shutdownDelayed = true;
                     this.cd.detectChanges();
@@ -124,7 +124,7 @@ export class RootComponent implements OnInit, OnDestroy {
 
                 const dialogRef = this.dialog.open(ReportComponent, {
                     data: {
-                        title: 'Failed to start City Chain background daemon',
+                        title: 'Failed to start Rutanio Node background daemon',
                         error,
                         lines: this.log.lastEntries()
                     }

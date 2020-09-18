@@ -1,8 +1,8 @@
 {
   "name": "hub.city_chain.org",
-  "displayName": "City Hub",
+  "displayName": "Rutanio Core",
   "version": "1.0.0",
-  "description": "City Hub for mobile devices",
+  "description": "Rutanio Core for mobile devices",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

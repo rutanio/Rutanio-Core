@@ -6,9 +6,8 @@ import { DetailsService } from '../../services/details.service';
 import { ApplicationStateService } from '../../services/application-state.service';
 import { WalletService } from '../../services/wallet.service';
 import { CoinService } from 'src/app/services/coin.service';
-import { CoincapService } from 'src/app/services/coincap.service';
 import { Subscription } from 'rxjs';
-import { CoincapAsset } from 'src/app/classes/coincap-asset';
+
 import { CoinAsset } from 'src/app/classes/coin-asset';
 import { NotificationService } from 'src/app/services/notification.service';
 import { P2pb2bAsset } from 'src/app/classes/p2pb2b2-asset';
@@ -33,7 +32,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     constructor(
         private apiService: ApiService,
-        private coincap: CoincapService,
+      //  private coincap: CoincapService,
         private coin: CoinService,
         private globalService: GlobalService,
         public appState: ApplicationStateService,
@@ -48,10 +47,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.startSubscriptions();
+       // this.startSubscriptions();
     }
 
-    changeTicker(change) {
+   changeTicker(change) {
         this.selectedCoinTickerIndex += change;
 
         if (this.selectedCoinTickerIndex < 0) {
@@ -67,13 +66,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     }
 
-    private startSubscriptions() {
+    /*private startSubscriptions() {
 
         this.subscriptions = [];
 
         let asset = this.appState.chain;
 
-        if (asset === 'city') {
+        if (asset === 'ruta') {
             asset = 'bitcoin'; // Until coincap.io supports CITY, we'll revert to Bitcoin.
         }
 
@@ -123,6 +122,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         //         }
         //     ));
     }
+    */
+
 
     private mapP2pb2bToAsset(coin: P2pb2bAsset): CoinAsset {
 
@@ -132,8 +133,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             maxSupply: '0',
             price: coin.last,
             volume24Hr: coin.volume,
-            symbol: 'CITY',
-            name: 'City Coin',
+            symbol: 'RUTA',
+            name: 'Rutanio',
             pair: coin.pair,
             volumepair: coin.volumepair
         };
@@ -141,6 +142,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return asset;
     }
 
+    /*
     private mapCoincapToAsset(coin: CoincapAsset): CoinAsset {
 
         const asset: CoinAsset = {
@@ -156,7 +158,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         };
 
         return asset;
-    }
+    }*/
 
     private cancelSubscriptions() {
         if (!this.subscriptions) {
@@ -172,7 +174,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     /** Called to cancel and restart all subscriptions. */
     private reactivate() {
         this.cancelSubscriptions();
-        this.startSubscriptions();
     }
 
     ngOnDestroy() {

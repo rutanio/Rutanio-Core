@@ -163,7 +163,7 @@ export class CreateAccountComponent implements OnInit {
                     extPubKey: xpub,
                     encryptedSeed: encryptedKeySeed,
                     chainCode: masterNode.chainCode,
-                    network: 'CityMain',
+                    network: 'RutanioMain',
                     creationTime: Date.now() / 1000,
                     coinType: 1926,
                     lastBlockSyncedHeight: 0,

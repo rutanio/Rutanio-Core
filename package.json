@@ -1,21 +1,21 @@
 {
-    "name": "cityhub",
-    "version": "1.0.27",
+    "name": "rutaniocore",
+    "version": "1.0.1",
     "license": "MIT",
     "author": {
-        "name": "City Chain Foundation",
-        "email": "post@city-chain.org",
-        "url": "https://www.city-chain.org"
+        "name": "Fluidchains Inc",
+        "email": "contact@fluidchains.com",
+        "url": "https://www.fluidchains.com"
     },
-    "description": "City Hub is your hub into everything on City Chain and the Smart City Platform.",
+    "description": "Rutanio Core.",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/CityChainFoundation/city-hub.git"
+        "url": "git+https://github.com/rutanio/Rutanio-Core.git"
     },
     "bugs": {
-        "url": "https://github.com/CityChainFoundation/city-hub/issues"
+        "url": "https://github.com/rutanio/Rutanio-Core/issues"
     },
-    "homepage": "https://github.com/CityChainFoundation/city-hub#readme",
+    "homepage": "https://github.com/rutanio/Rutanio-Core#readme",
     "main": "main.js",
     "scripts": {
         "postinstall": "npm run postinstall:electron && npx electron-builder install-app-deps",
@@ -59,6 +59,8 @@
     },
     "private": true,
     "dependencies": {
+        "@angular/localize": "10.1.1",
+        "@angular-devkit/schematics": "^10.0.8",
         "@blockcore/message": "^1.0.0",
         "@techiediaries/ngx-qrcode": "^9.1.0",
         "base64url": "^3.0.1",
@@ -113,7 +115,7 @@
         "codelyzer": "^6.0.0",
         "core-js": "3.6.5",
         "dexie": "3.0.2",
-        "electron": "9.2.0",
+        "electron": "^9.2.0",
         "electron-builder": "22.8.0",
         "electron-reload": "1.5.0",
         "enhanced-resolve": "4.3.0",
@@ -126,11 +128,12 @@
         "karma-jasmine": "~3.3.1",
         "karma-jasmine-html-reporter": "^1.5.4",
         "ngx-electron": "2.2.0",
-        "npm-run-all": "4.1.5",
+        "npm-run-all": "^4.1.5",
         "npx": "10.2.2",
         "protractor": "~7.0.0",
         "replace": "1.2.0",
         "roboto-fontface": "0.10.0",
+        "ruta-coininfo": "file:/./contrib/ruta-coininfo-5.1.0.tgz",
         "rxjs": "6.6.2",
         "ts-node": "8.10.2",
         "tslint": "~6.1.3",

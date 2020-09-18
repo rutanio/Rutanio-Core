@@ -65,20 +65,20 @@ export class Logger {
 
         switch (logLevel) {
             case LogLevel.Verbose:
-                console.log(`[City Hub] ${message}`, ...args);
+                console.log(`[Rutanio Core] ${message}`, ...args);
                 break;
             case LogLevel.Info:
                 // tslint:disable-next-line:no-console
-                console.info(`[City Hub] ${message}`, ...args);
+                console.info(`[Rutanio Core] ${message}`, ...args);
                 break;
             case LogLevel.Warn:
-                console.warn(`[City Hub] ${message}`, ...args);
+                console.warn(`[Rutanio Core] ${message}`, ...args);
                 break;
             case LogLevel.Error:
-                console.error(`[City Hub] ${message}`, ...args);
+                console.error(`[Rutanio Core] ${message}`, ...args);
                 break;
             case LogLevel.Critical:
-                console.error(`[City Hub] [CRITICAL] ${message}`, ...args);
+                console.error(`[Rutanio Core] [CRITICAL] ${message}`, ...args);
                 break;
             default:
                 break;

@@ -30,16 +30,16 @@ export class ApplicationStateService {
     ) {
         if (!ApplicationStateService.singletonInstance) {
 
-            this.chain = this.getParam('chain') || 'city';
+            this.chain = this.getParam('chain') || 'ruta';
 
             // TODO: These properties are deprecated, refactor!
             this.mode = localStorage.getItem('Network:Mode') || 'full';
-            this.network = localStorage.getItem('Network:Network') || 'citymain';
+            this.network = localStorage.getItem('Network:Network') || 'RutanioMain';
             this.path = localStorage.getItem('Network:Path') || '';
 
             this.daemon = {
                 mode: localStorage.getItem('Network:Mode') || 'full',
-                network: localStorage.getItem('Network:Network') || 'citymain',
+                network: localStorage.getItem('Network:Network') || 'RutanioMain',
                 path: localStorage.getItem('Network:Path') || '',
                 datafolder: localStorage.getItem('Network:DataFolder') || ''
             };
@@ -83,7 +83,7 @@ export class ApplicationStateService {
 
     shutdownDelayed = false;
 
-    /** Indicates if we are connected from City Hub with the City Chain daemon. */
+    /** Indicates if we are connected from City Hub with the Rutanio Core daemon. */
     connected = false;
 
     changingMode = false;

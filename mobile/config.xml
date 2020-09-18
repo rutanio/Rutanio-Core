@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="hub.city_chain.org" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>City Hub</name>
+    <name>Rutanio Core</name>
     <description>
-        City Hub for mobile devices
+        Rutanio Core for mobile devices
     </description>
     <author email="labs@ -chain.org" href="https://www.city-chain.org">
-        City Chain Labs
+        Rutanio Core Labs
     </author>
     <content src="index.html" />
     <access origin="*" />

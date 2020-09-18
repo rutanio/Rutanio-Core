@@ -1,17 +1,17 @@
 {
-    "appId": "org.city-chain.hub",
-    "artifactName": "City.Hub-${version}-${os}-${arch}.${ext}",
-    "productName": "City Hub",
+    "appId": "org.rutanio-core",
+    "artifactName": "Rutanio.Core-${version}-${os}-${arch}.${ext}",
+    "productName": "Rutanio Hub",
     "asar": true,
     "publish": [
         {
             "provider": "github",
-            "owner": "CityChainFoundation",
-            "repo": "city-hub"
+            "owner": "rutanio",
+            "repo": "rutanio-core"
         }
     ],
     "releaseInfo": {
-        "releaseName": "City Hub"
+        "releaseName": "Rutanio Core"
     },
     "files": [
         "dist/**",
@@ -25,14 +25,14 @@
         "target": [
             "nsis"
         ],
-        "artifactName": "City.Hub-${version}-${os}-${env.arch}.${ext}"
+        "artifactName": "Rutanio.Core-${version}-${os}-${env.arch}.${ext}"
     },
     "linux": {
         "icon": "dist/assets/images/",
         "target": [
             "AppImage:x64"
         ],
-        "synopsis": "City Hub is your hub into everything on City Chain and the Smart City Platform.",
+        "synopsis": " ",
         "category": "Utility"
     },
     "mac": {
@@ -62,7 +62,7 @@
         "perMachine": true,
         "allowToChangeInstallationDirectory": true,
         "deleteAppDataOnUninstall": true,
-        "guid": "42ba105c-858b-41cc-94bc-2b8c5ee5c6b4",
+        "guid": "693636e4-aa8c-4a2f-87cc-acb76f324caf",
         "createDesktopShortcut": true,
         "createStartMenuShortcut": true,
         "license": "dist/assets/license.txt"
