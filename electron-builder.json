@@ -6,8 +6,8 @@
     "publish": [
         {
             "provider": "github",
-            "owner": "rutanio",
-            "repo": "rutanio-core"
+            "owner": "fluidchains",
+            "repo": "Rutanio-Core"
         }
     ],
     "releaseInfo": {
