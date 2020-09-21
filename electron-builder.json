@@ -1,7 +1,7 @@
 {
     "appId": "org.rutanio-core",
     "artifactName": "Rutanio.Core-${version}-${os}-${arch}.${ext}",
-    "productName": "Rutanio Hub",
+    "productName": "Rutanio Core",
     "asar": true,
     "publish": [
         {
