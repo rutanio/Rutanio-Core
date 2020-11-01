@@ -276,7 +276,7 @@ function createWindow() {
     mainWindow.on('minimize', function (event) {
         if (!settings.showInTaskbar) {
             event.preventDefault();
-            mainWindow.hide();
+            // mainWindow.hide();
         }
     });
     // Emitted when the window is closed.
@@ -370,7 +370,7 @@ function getDaemonPath() {
         apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
     }
     else {
-        apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
+        apiPath = path.resolve(__dirname, '..//..//resources//daemon//bin//publish');
     }
     return apiPath;
 }

@@ -352,7 +352,7 @@ function createWindow() {
     mainWindow.on('minimize', (event) => {
         if (!settings.showInTaskbar) {
             event.preventDefault();
-            mainWindow.hide();
+           // mainWindow.hide();
         }
     });
 
@@ -455,7 +455,7 @@ function getDaemonPath() {
     } else if (os.platform() === 'linux') {
         apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
     } else {
-        apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
+        apiPath = path.resolve(__dirname, '..//..//resources//daemon//bin//publish');
     }
 
     return apiPath;
