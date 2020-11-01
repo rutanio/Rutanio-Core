@@ -76,7 +76,9 @@ export class CreateAccountComponent implements OnInit {
                 Validators.required,
                 Validators.minLength(1),
                 Validators.maxLength(24),
-                Validators.pattern(/^[a-zA-Z0-9]*$/)
+                Validators.pattern(/^[a-zA-Z0-9]*$/),
+                Validators.maxLength(42),
+                Validators.pattern(/^[a-zA-Z0-9-_.]*$/)
             ]))
         });
     }
