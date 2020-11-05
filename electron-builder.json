@@ -28,7 +28,7 @@
         "artifactName": "Rutanio.Core-${version}-${os}-${env.arch}.${ext}"
     },
     "linux": {
-        "icon": "dist/assets/icon.ico",
+        "icon": "dist/assets/images/",
         "target": [
             "AppImage:x64"
         ],
