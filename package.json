@@ -1,9 +1,9 @@
 {
     "name": "rutaniocore",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "license": "MIT",
     "author": {
-        "name": "Fluidchains Inc",
+        "name": "FluidChains Inc",
         "email": "contact@fluidchains.com",
         "url": "https://www.fluidchains.com"
     },
