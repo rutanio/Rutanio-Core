@@ -8,7 +8,7 @@
                 <mat-card-subtitle>The balance of: {{wallet.walletName}}</mat-card-subtitle>
                 <mat-card-content>
                     <p>
-                        <strong>{{ (wallet.confirmedBalance | coinNotation) || (0 | coinNotation) }}</strong>
+                        <strong>{{ (wallet.confirmedBalance | coinNotation| number: '1.0-8') || (0 | coinNotation) }}</strong>
                         <small class="text-uppercase"> {{ wallet.coinUnit }}</small>
                     </p>
                     <ul *ngIf="wallet.unconfirmedBalance">
