@@ -6,12 +6,12 @@
     "publish": [
         {
             "provider": "github",
-            "owner": "Fluidchains",
+            "owner": "FluidChains",
             "repo": "Rutanio-Core"
         }
     ],
     "releaseInfo": {
-        "releaseName": "Rutanio Core"
+        "releaseName": "v${version}"
     },
     "files": [
         "dist/**",

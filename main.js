@@ -248,6 +248,7 @@ function createWindow() {
     if (serve) {
         mainWindow.webContents.openDevTools();
     }
+    autoUpdater.checkForUpdatesAndNotify();
     // Emitted when the window is going to close.
     mainWindow.on('close', function (event) {
         writeLog("close event on mainWindow was triggered. Calling shutdown method. Daemon state is: " + daemonState + ".");

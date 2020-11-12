@@ -319,6 +319,8 @@ function createWindow() {
         mainWindow.webContents.openDevTools();
     }
 
+    autoUpdater.checkForUpdatesAndNotify();
+
     // Emitted when the window is going to close.
     mainWindow.on('close', (event) => {
         writeLog(`close event on mainWindow was triggered. Calling shutdown method. Daemon state is: ${daemonState}.`);
@@ -460,6 +462,7 @@ function getDaemonPath() {
 
     return apiPath;
 }
+
 
 function launchDaemon(apiPath: string, chain: Chain) {
     let daemonProcess;
