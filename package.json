@@ -10,12 +10,12 @@
     "description": " ",
     "repository": {
         "type": "git",
-        "url": "https://github.com/FluidChains/Rutanio-Hub.git"
+        "url": "https://github.com/rutanio/Rutanio-Core.git"
     },
     "bugs": {
-        "url": "https://github.com/FluidChains/Rutanio-Hub/issues"
+        "url": "https://github.com/rutanio/Rutanio-Core/issues"
     },
-    "homepage": "https://github.com/FluidChains/Rutanio-Hub#readme",
+    "homepage": "https://github.com/rutanio/Rutanio-Core#readme",
     "main": "main.js",
     "scripts": {
         "postinstall": "npm run postinstall:electron && npx electron-builder install-app-deps",
