@@ -49,7 +49,7 @@ describe('AppComponent', () => {
     }));
 
     it('should produce correct extpubkey', async(() => {
-        // This test is a replicate of 'ShouldProduceCorrectExtPubKey' test in C# (Rutanio Core)
+        // This test is a replicate of 'ShouldProduceCorrectExtPubKey' test in C# (RUTA Node)
         const passphrase = '';
         const recoveryPhrase = 'mystery problem faith negative member bottom concert bundle asthma female process twelve';
         const walletPassword = 'test';
@@ -78,7 +78,7 @@ describe('AppComponent', () => {
         // Get the "root" address.
         const address = getAddress(masterNode, network);
 
-        // Ensure that the generated address is a Rutanio Core address and not Bitcoin.
+        // Ensure that the generated address is a RUTA Node address and not Bitcoin.
         expect(address).toEqual('CQtq75vu4bAceku6FmenWBh35i1Y4oskdu');
 
         // tslint:disable-next-line

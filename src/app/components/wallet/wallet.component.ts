@@ -12,10 +12,13 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { AppModes } from '../../shared/app-modes';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { WalletInfo } from '@models/wallet-info';
 import { WalletUtxoCountDialogComponent } from './wallet-utxo-count-dialog';
 import { WalletSplit } from '@models/wallet-split';
+import { LocaleService } from 'src/app/services/locale.service';
+
 
 @Component({
     selector: 'app-wallet',
@@ -28,9 +31,12 @@ export class WalletComponent implements OnInit, OnDestroy {
 
     public stakingForm: FormGroup;
     public walletInfo = 'When you send, balance can\ntemporarily go from confirmed\nto unconfirmed.';
+    public stakingInfo = 'Staking is the process of locking a certain amount\nof tokens to become an active validating node for\nthe network, in order to obtain rewards and validate\ntransactions on a blockchain';
+    public txInfo = 'UTXO: Unspent Transaction Output\nTRXs: Transactions';
     public displayedColumns: string[] = ['transactionType', 'transactionAmount', 'transactionTimestamp'];
     public dataSource = new MatTableDataSource<TransactionInfo>();
     private walletServiceSubscription: Subscription;
+    protected walletServiceUnsubscribe: Subject<void> = new Subject<void>();
 
     public firstTransactionDate: Date;
     public countReceived: number;
@@ -45,7 +51,7 @@ export class WalletComponent implements OnInit, OnDestroy {
 
     constructor(
         private apiService: ApiService,
-        private globalService: GlobalService,
+        public globalService: GlobalService,
         private router: Router,
         public appState: ApplicationStateService,
         private detailsService: DetailsService,
@@ -53,7 +59,8 @@ export class WalletComponent implements OnInit, OnDestroy {
         public appModes: AppModes,
         public dialog: MatDialog,
         private fb: FormBuilder,
-        private ref: ChangeDetectorRef
+        private ref: ChangeDetectorRef,
+        public localeService: LocaleService
     ) {
         this.buildStakingForm();
         this.appState.pageMode = false;
@@ -156,6 +163,10 @@ export class WalletComponent implements OnInit, OnDestroy {
             this.links[1].title = 'Received (' + this.countReceived + ')';
             this.links[2].title = 'Sent (' + this.countSent + ')';
         }
+    }
+
+    get isIBD(): boolean {
+        return this.wallet.generalInfo && this.wallet.generalInfo.connectedNodes !== 0 && !this.wallet.generalInfo.isChainSynced;
     }
 
     public stopStaking() {

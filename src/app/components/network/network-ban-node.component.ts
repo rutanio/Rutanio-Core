@@ -9,6 +9,7 @@ export interface NodeDialogData {
 @Component({
     selector: 'app-network-ban-node',
     templateUrl: 'network-ban-node.component.html',
+    styleUrls: ['./network-ban-node.component.scss'],
     encapsulation: ViewEncapsulation.None
 })
 export class NetworkBanNodeComponent {

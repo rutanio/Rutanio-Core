@@ -1,20 +1,46 @@
 .network {
-    mat-grid-tile {
-    }
 
     .add-node {
+        background-color: #561265 !important;
         float: right;
         margin-right: 18px;
         margin-top: 4px;
     }
 
+    .mat-card {
+        background-image: url('../../../assets/rutanio-core/card-background.png');
+        background-size: cover;
+        color: white;
+        height: 80px !important;
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+    }
+
     .card {
-        margin: 0px 20px 20px 20px;
+        height: auto !important;
+    }
+    
+    .mat-card-subtitle {
+        margin-top: 5px;
+        color: white;
     }
 
     .details-content
     {
-        margin-top: 14px;
+        margin: 15px;
+    }
+
+    .zeroInboundsOutboundsTitle > .mat-card-header-text {
+        margin: 0;
+    }
+
+    .zeroInboundsOutboundsTitle > * .mat-card-title {
+        display: flex;
+    }
+
+    .zeroInboundsOutboundsTitle > * .mat-icon {
+        margin-left: 5px;
     }
 
     .network-grid
@@ -22,14 +48,16 @@
         border-bottom: 1px solid silver;
     }
 
+    .network-stat-row {
+        margin-bottom: 0px !important;
+    }
+
     .network-details-footer {
         text-align: center;
-        padding-top: 20px;
         padding-bottom: 20px;
     }
 
     .network-label {
-        font-color: gray;
         padding-bottom: 10px;
     }
 
@@ -38,11 +66,22 @@
         font-size: 1.6em;
     }
 
+    .network-value-2
+    {
+        font-size: 1.4em;
+    }
+
+    .mat-grid-list {
+        color: white;
+    }
+
     .mat-grid-tile .mat-figure {
         flex-direction: column !important;
     }
 
     .mat-grid-tile {
+        background-color: #341139;
+        background-size: cover;
         border-right: 1px solid silver !important;
         border-bottom: 1px solid silver !important;
     }
@@ -54,5 +93,22 @@
 
     .network-grid .mat-icon {
         font-size: 1.6em !important;
+    }
+
+    .mat-list .mat-list-item , .mat-list-base .mat-subheader {
+        color: white;
+    }
+    .accept-button {
+        background: linear-gradient(to bottom left, #5fecff, #52185e);
+        background-size: cover;
+        color: white;
+        font-size: 1.1rem;
+    }
+    .cancel-button {
+        width: 100px;
+        background-color: #561265 !important;
+        background-size: cover;
+        color: white;
+        font-size: 1.1rem;
     }
 }

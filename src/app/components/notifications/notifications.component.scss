@@ -31,4 +31,25 @@
     {
         color: silver;
     }
+
+    .mat-card {
+        background-image: url('../../../assets/rutanio-core/card-background.png');
+        background-size: cover;
+        color: white;
+    }
+
+    .mat-card > .mat-badge-content {
+        background-color: #52185e;
+    }
+
+    .mat-card-subtitle {
+        color: white;
+    }
+
+    .wallet-accept {
+        background: linear-gradient(to bottom left, #5fecff, #52185e) !important;
+        background-size: cover;
+        color: white;
+        font-size: 1.1rem;
+    }
 }

@@ -1,0 +1,26 @@
+.mat-dialog-container {
+    background-color: #561265 !important;
+    background-size: cover;
+}
+
+.ban-node-content {
+    color: white;
+}
+
+.ban-node-content > * .mat-focused .mat-form-field-ripple {
+    background-color: white !important;
+}
+
+.ban-node-content > * .mat-focused input {
+    caret-color: white;
+}
+
+.accept-button {
+    background: linear-gradient(to bottom left, #5fecff, #52185e) !important;
+    font-size: 1rem;
+}
+
+.cancel-button {
+    background-color: #351049 !important;
+    font-size: 1rem;
+}

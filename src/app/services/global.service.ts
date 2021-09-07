@@ -25,6 +25,7 @@ export class GlobalService {
     private network: string;
     private decimalLimit = 8;
 
+
     getWalletPath() {
         return this.walletPath;
     }

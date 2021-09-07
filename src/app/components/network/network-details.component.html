@@ -29,9 +29,8 @@
 
         </mat-list-item>
         <mat-card class="card" *ngIf="status.outboundPeers == 0">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>info</mat-icon>
-                <mat-card-title>Zero outbound nodes</mat-card-title>
+            <mat-card-header class="zeroInboundsOutboundsTitle">
+                <mat-card-title>Zero outbound nodes<mat-icon>info</mat-icon></mat-card-title>
                 <mat-card-subtitle>You have zero connected nodes.</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
@@ -64,11 +63,9 @@
 
         </mat-list-item>
         <mat-card class="card" *ngIf="status.inboundPeers == 0">
-            <mat-card-header>
-                <mat-icon mat-card-avatar>info</mat-icon>
-                <mat-card-title>Zero inbound nodes</mat-card-title>
-                <mat-card-subtitle>You have zero nodes incoming to your computer, likely because your firewall blocks traffic.
-                </mat-card-subtitle>
+            <mat-card-header class="zeroInboundsOutboundsTitle">
+                <mat-card-title>Zero inbound nodes<mat-icon>info</mat-icon></mat-card-title>
+                <mat-card-subtitle>You have zero nodes incoming to your computer, likely because your firewall blocks traffic.</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
                 <h3 class="mat-h3">TCP port: {{chain.port}}</h3>
@@ -108,7 +105,7 @@
         <h3 mat-subheader>Details</h3>
         <mat-list-item>
             <mat-icon mat-list-icon>share</mat-icon>
-            <h4 mat-line>{{walletService.generalInfo?.chainTip}}</h4>
+            <h4 mat-line>{{walletService.generalInfo?.chainTip.toLocaleString(this.localeService.locale)}}</h4>
             <p mat-line>Network Height (Chain Tip)</p>
         </mat-list-item>
         <mat-list-item>
@@ -123,7 +120,7 @@
         </mat-list-item>
         <mat-list-item>
             <mat-icon mat-list-icon>share</mat-icon>
-            <h4 mat-line>{{walletService.generalInfo?.lastBlockSyncedHeight}}</h4>
+            <h4 mat-line>{{walletService.generalInfo?.lastBlockSyncedHeight.toLocaleString(this.localeService.locale)}}</h4>
             <p mat-line>Wallet Height</p>
         </mat-list-item>
         <mat-list-item>
@@ -162,5 +159,5 @@
 </div>
 
 <div class="network-details-footer">
-    <button (click)="back()" mat-raised-button>Go back</button>
+    <button class="cancel-button" (click)="back()" mat-raised-button>Go back</button>
 </div>

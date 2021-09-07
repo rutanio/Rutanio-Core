@@ -1,6 +1,7 @@
 "use strict";
 exports.__esModule = true;
 var electron_1 = require("electron");
+var node_machine_id_1 = require("node-machine-id");
 var path = require("path");
 var url = require("url");
 var os = require("os");
@@ -53,19 +54,25 @@ autoUpdater.autoDownload = false;
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
 var daemonState;
+var resetMode = false;
+var resetArg = null;
 var contents = null;
 var currentChain;
 var settings;
 var hasDaemon = false;
+var daemons = [];
 var args = process.argv.slice(1);
 var serve = args.some(function (val) { return val === '--serve'; });
-var coin = { identity: 'ruta', tooltip: 'Rutanio Core' }; // To simplify third party forks and different UIs for different coins, we'll define this constant that loads different assets.
+var coin = { identity: 'exos', tooltip: 'EXOS Core' }; // To simplify third party forks and different UIs for different coins, we'll define this constant that loads different assets.
 require('electron-context-menu')({
     showInspectElement: serve
 });
 process.on('uncaughtException', function (error) {
     writeLog('Uncaught exception happened:');
     writeLog('Error: ' + error);
+});
+process.on('exit', function (code) {
+    return console.log("About to exit with code " + code);
 });
 electron_1.ipcMain.on('start-daemon', function (event, arg) {
     if (daemonState === DaemonState.Started) {
@@ -83,13 +90,11 @@ electron_1.ipcMain.on('start-daemon', function (event, arg) {
     assert(isNumber(arg.port));
     assert(isNumber(arg.rpcPort));
     assert(isNumber(arg.apiPort));
-    assert(isNumber(arg.wsPort));
-    assert(arg.network.length < 20);
     currentChain = arg;
     writeLog(currentChain);
     if (arg.mode === 'manual') {
         daemonState = DaemonState.Started;
-        var msg = 'Rutanio Core was started in development mode. This requires the user to be running the daemon manually.';
+        var msg = 'EXOS Core was started in development mode. This requires the user to be running the daemon manually.';
         writeLog(msg);
         event.returnValue = msg;
     }
@@ -120,34 +125,123 @@ electron_1.ipcMain.on('daemon-started', function (event, arg) {
 electron_1.ipcMain.on('daemon-change', function (event, arg) {
     daemonState = DaemonState.Changing;
 });
+electron_1.ipcMain.on('check-storage', function (event, arg) {
+    var diskspace = require('diskspace');
+    var diskUnit = '/';
+    if (os.platform() === 'win32') {
+        diskUnit = 'C';
+    }
+    diskspace.check(diskUnit, function (err, result) {
+        event.returnValue = result.free;
+    });
+});
 // Called when the app needs to reset the blockchain database. It will delete the "blocks", "chain" and "coinview" folders.
 electron_1.ipcMain.on('reset-database', function (event, arg) {
     writeLog('reset-database: User want to reset database, first attempting to shutdown the node.');
     // Make sure the daemon is shut down first:
-    shutdownDaemon(function (success, error) {
-        var userDataPath = electron_1.app.getPath('userData');
-        var appDataFolder = path.dirname(userDataPath);
-        var dataFolder = path.join(appDataFolder, 'Blockcore', 'rutanio', arg);
-        var folderBlocks = path.join(dataFolder, 'blocks');
-        var folderChain = path.join(dataFolder, 'chain');
-        var folderCoinView = path.join(dataFolder, 'coinview');
-        var folderCommon = path.join(dataFolder, 'common');
-        var folderProvenHeaders = path.join(dataFolder, 'provenheaders');
-        var folderFinalizedBlock = path.join(dataFolder, 'finalizedBlock');
-        // After shutdown completes, we'll delete the database.
-        deleteFolderRecursive(folderBlocks);
-        deleteFolderRecursive(folderChain);
-        deleteFolderRecursive(folderCoinView);
-        deleteFolderRecursive(folderCommon);
-        deleteFolderRecursive(folderProvenHeaders);
-        deleteFolderRecursive(folderFinalizedBlock);
+    var appDataFolder = parseDataFolder([]);
+    var dataFolder = path.join(appDataFolder, 'exos', 'EXOSMain');
+    var folderBlocks = path.join(dataFolder, 'blocks');
+    var folderChain = path.join(dataFolder, 'chain');
+    var folderCoinView = path.join(dataFolder, 'coindb');
+    var folderCommon = path.join(dataFolder, 'common');
+    var folderProvenHeaders = path.join(dataFolder, 'provenheaders');
+    var folderFinalizedBlock = path.join(dataFolder, 'finalizedBlock');
+    // After shutdown completes, we'll delete the database.
+    deleteFolderRecursive(folderBlocks);
+    deleteFolderRecursive(folderChain);
+    deleteFolderRecursive(folderCoinView);
+    deleteFolderRecursive(folderCommon);
+    deleteFolderRecursive(folderProvenHeaders);
+    deleteFolderRecursive(folderFinalizedBlock);
+    event.returnValue = 'OK';
+});
+electron_1.ipcMain.on('resize-main', function (event, arg) {
+    mainWindow.setSize(1366, 768);
+    mainWindow.maximizable = true;
+    mainWindow.resizable = true;
+    mainWindow.center();
+});
+function parseDataFolder(arg) {
+    var blockcorePlatform = '.blockcore';
+    if (os.platform() === 'win32') {
+        blockcorePlatform = 'Blockcore';
+    }
+    var nodeDataFolder = path.join(getAppDataPath(), blockcorePlatform);
+    arg.unshift(nodeDataFolder);
+    var dataFolder = path.join.apply(path, arg);
+    return dataFolder;
+}
+electron_1.ipcMain.on('download-blockchain-package', function (event, arg) {
+    console.log('download-blockchain-package');
+    var appDataFolder = parseDataFolder([]);
+    var dataFolder = path.join(appDataFolder, 'exos', 'EXOSMain');
+    // Get the folder to download zip to:
+    var targetFolder = path.dirname(dataFolder);
+    if (!fs.existsSync(dataFolder)) {
+        console.log('The folder does not EXIST!');
+        fs.mkdirSync(dataFolder, { recursive: true });
+    }
+    // We must have this in a try/catch or crashes will halt the UI.
+    try {
+        downloadFile(arg.url, targetFolder, function (finished, progress, error) {
+            contents.send('download-blockchain-package-finished', finished, progress, error);
+            if (error) {
+                console.error('Error during downloading: ' + error.toString());
+            }
+            if (finished) {
+                console.log('FINISHED!!');
+            }
+            else {
+            }
+        });
+    }
+    catch (err) {
+    }
+    event.returnValue = 'OK';
+});
+electron_1.ipcMain.on('download-blockchain-package-abort', function (event, arg) {
+    try {
+        blockchainDownloadRequest.abort();
+        blockchainDownloadRequest = null;
+    }
+    catch (err) {
+        event.returnValue = err.message;
+    }
+    contents.send('download-blockchain-package-finished', true, { status: 'Cancelled', progress: 0, size: 0, downloaded: 0 }, 'Cancelled');
+    event.returnValue = 'OK';
+});
+electron_1.ipcMain.on('unpack-blockchain-package', function (event, arg) {
+    console.log('CALLED!!!! - unpack-blockchain-package');
+    var appDataFolder = parseDataFolder([]);
+    var targetFolder = path.join(appDataFolder, 'exos', 'EXOSMain');
+    var sourceFile = arg.source;
+    var extract = require('extract-zip');
+    extract(sourceFile, { dir: targetFolder }).then(function () {
+        fs.unlinkSync(sourceFile);
+        console.log('FINISHED UNPACKING!');
+        contents.send('unpack-blockchain-package-finished', null);
+    })["catch"](function (err) {
+        fs.unlinkSync(sourceFile);
+        console.error('Failed to unpack: ', err);
+        contents.send('unpack-blockchain-package-finished', err);
     });
     event.returnValue = 'OK';
 });
+electron_1.ipcMain.on('resize-login', function (event, arg) {
+    mainWindow.center();
+});
 electron_1.ipcMain.on('open-data-folder', function (event, arg) {
-    var userDataPath = electron_1.app.getPath('userData');
-    var appDataFolder = path.dirname(userDataPath);
-    var dataFolder = path.join(appDataFolder, 'Blockcore', 'rutanio', arg);
+    var userDataPath = getAppDataPath();
+    var dataFolder = null;
+    if (os.platform() === 'win32') {
+        dataFolder = path.join(userDataPath, 'Blockcore', 'exos', arg);
+        writeLog(dataFolder);
+    }
+    else {
+        dataFolder = path.join(userDataPath, '.blockcore', 'exos', arg);
+        writeLog(dataFolder);
+    }
     electron_1.shell.openPath(dataFolder);
     event.returnValue = 'OK';
 });
@@ -212,16 +306,44 @@ function deleteFolderRecursive(folder) {
         fs.rmdirSync(folder);
     }
 }
+function getAppDataPath() {
+    switch (process.platform) {
+        case 'darwin': {
+            return path.join(process.env.HOME);
+        }
+        case "win32": {
+            return path.join(process.env.APPDATA);
+        }
+        case "linux": {
+            writeLog(path.join(process.env.HOME).toString());
+            return path.join(process.env.HOME);
+        }
+        default: {
+            console.log("Unsupported platform!");
+            process.exit(1);
+        }
+    }
+}
 function createWindow() {
     // Create the browser window.
+    var iconpath;
+    if (serve) {
+        iconpath = electron_1.nativeImage.createFromPath('./src/assets/exos-core/logo-tray.png');
+    }
+    else {
+        iconpath = electron_1.nativeImage.createFromPath(path.resolve(__dirname, '..//..//resources//dist//assets//exos-core//logo-tray.png'));
+    }
+    var _a = electron_1.screen.getPrimaryDisplay().workAreaSize, width = _a.width, height = _a.height;
     mainWindow = new electron_1.BrowserWindow({
-        width: 1150,
-        height: 800,
+        width: 1366,
+        minWidth: 1100,
+        icon: iconpath,
+        height: 768,
         frame: true,
-        minWidth: 260,
-        minHeight: 400,
-        title: 'Rutanio Core',
-        webPreferences: { webSecurity: false, nodeIntegration: true }
+        center: true,
+        resizable: true,
+        title: 'EXOS Core',
+        webPreferences: { webSecurity: false, nodeIntegration: true, contextIsolation: false }
     });
     contents = mainWindow.webContents;
     mainWindow.setMenu(null);
@@ -296,7 +418,15 @@ electron_1.app.on('ready', function () {
     createWindow();
 });
 electron_1.app.on('before-quit', function () {
-    writeLog('Rutanio Core was exited.');
+    writeLog('EXOS Core was exited.');
+    exitGuard();
+});
+electron_1.ipcMain.on('kill-process', function () {
+    exitGuard();
+});
+electron_1.ipcMain.on('track-id', function (event) {
+    var uuid = node_machine_id_1.machineIdSync(true);
+    event.sender.send('tracked-id', uuid);
 });
 var shutdown = function (callback) {
     writeLog('Signal a shutdown to the daemon.');
@@ -324,11 +454,8 @@ var shutdown = function (callback) {
         }
     });
 };
-var quit = function () {
-    electron_1.app.quit();
-};
 electron_1.app.on('window-all-closed', function () {
-    quit();
+    electron_1.app.quit();
 });
 electron_1.app.on('activate', function () {
     // On OS X it's common to re-create a window in the app when the
@@ -341,15 +468,8 @@ function startDaemon(chain) {
     hasDaemon = true;
     var folderPath = chain.path || getDaemonPath();
     var daemonName;
-    writeLog(chain.identity);
-    if (chain.identity === 'ruta') {
-        daemonName = 'Rutanio.Node';
-    }
-    else if (chain.identity === 'stratis') {
-        daemonName = 'Stratis.StratisD';
-    }
-    else if (chain.identity === 'bitcoin') {
-        daemonName = 'Stratis.StratisD';
+    if (chain.identity === 'exos') {
+        daemonName = 'Blockcore.Node';
     }
     // If path is not specified and Win32, we'll append .exe
     if (!chain.path && os.platform() === 'win32') {
@@ -371,9 +491,25 @@ function getDaemonPath() {
         apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
     }
     else {
-        apiPath = path.resolve(__dirname, '..//..//resources//daemon//bin//publish');
+        apiPath = path.resolve(__dirname, '..//..//Resources//daemon//');
     }
     return apiPath;
+}
+function exitGuard() {
+    console.log('Exit Guard is processing...');
+    console.log(daemons[0]);
+    if (daemons && daemons.length > 0) {
+        for (var i = 0; i < daemons.length; i++) {
+            try {
+                console.log('Killing (' + daemons[i].pid + '): ' + daemons[i].spawnfile);
+                daemons[i].kill();
+            }
+            catch (err) {
+                console.log('Failed to kill daemon: ' + err);
+                console.log(daemons[i]);
+            }
+        }
+    }
 }
 function launchDaemon(apiPath, chain) {
     var daemonProcess;
@@ -396,7 +532,8 @@ function launchDaemon(apiPath, chain) {
     commandLineArguments.push('-port=' + chain.port);
     commandLineArguments.push('-rpcport=' + chain.rpcPort);
     commandLineArguments.push('-apiport=' + chain.apiPort);
-    commandLineArguments.push('-wsport=' + chain.wsPort);
+    commandLineArguments.push('-dbtype=rocksdb');
+    commandLineArguments.push('--chain=EXOS');
     if (chain.mode === 'light') {
         commandLineArguments.push('-light');
     }
@@ -422,27 +559,28 @@ function launchDaemon(apiPath, chain) {
             detached: true
         });
     }
+    daemons.push(daemonProcess);
     daemonProcess.stdout.on('data', function (data) {
-        writeDebug("Rutanio Core: " + data);
+        writeDebug("EXOS Node: " + data);
     });
     /** Exit is triggered when the process exits. */
     daemonProcess.on('exit', function (code, signal) {
-        writeLog("Rutanio Core daemon process exited with code " + code + " and signal " + signal + " when the state was " + daemonState + ".");
+        writeLog("EXOS Node daemon process exited with code " + code + " and signal " + signal + " when the state was " + daemonState + ".");
         // There are many reasons why the daemon process can exit, we'll show details
         // in those cases we get an unexpected shutdown code and signal.
         if (daemonState === DaemonState.Changing) {
             writeLog('Daemon exit was expected, the user is changing the network mode.');
         }
         else if (daemonState === DaemonState.Starting) {
-            contents.send('daemon-error', "CRITICAL: Rutanio Core daemon process exited during startup with code " + code + " and signal " + signal + ".");
+            contents.send('daemon-error', "CRITICAL: EXOS Node daemon process exited during startup with code " + code + " and signal " + signal + ".");
         }
         else if (daemonState === DaemonState.Started) {
-            contents.send('daemon-error', "Rutanio Core daemon process exited manually or crashed, with code " + code + " and signal " + signal + ".");
+            contents.send('daemon-error', "EXOS Node daemon process exited manually or crashed, with code " + code + " and signal " + signal + ".");
         }
         else {
             // This is a normal shutdown scenario, but we'll show error dialog if the exit code was not 0 (OK).
             if (code !== 0) {
-                contents.send('daemon-error', "Rutanio Core daemon shutdown completed, but resulted in exit code " + code + " and signal " + signal + ".");
+                contents.send('daemon-error', "EXOS Node daemon shutdown completed, but resulted in exit code " + code + " and signal " + signal + ".");
             }
             else {
                 // Check is stopping of daemon has been requested. If so, we'll notify the UI that it has completed the exit.
@@ -452,12 +590,12 @@ function launchDaemon(apiPath, chain) {
         daemonState = DaemonState.Stopped;
     });
     daemonProcess.on('error', function (code, signal) {
-        writeError("Rutanio Core daemon process failed to start. Code " + code + " and signal " + signal + ".");
+        writeError("EXOS Node daemon process failed to start. Code " + code + " and signal " + signal + ".");
     });
 }
 function shutdownDaemon(callback) {
     if (!hasDaemon) {
-        writeLog('Rutanio Core is in mobile mode, no daemon to shutdown.');
+        writeLog('EXOS Core is in mobile mode, no daemon to shutdown.');
         callback(true, null);
         contents.send('daemon-exited'); // Make the app shutdown.
         return;
@@ -468,43 +606,42 @@ function shutdownDaemon(callback) {
         callback(true, null);
         return;
     }
-    if (process.platform !== 'darwin') {
-        writeLog('Sending POST request to shut down daemon.');
-        var http = require('http');
-        var options = {
-            hostname: 'localhost',
-            port: currentChain.apiPort,
-            path: '/api/node/shutdown',
-            method: 'POST'
-        };
-        var req = http.request(options);
-        req.on('response', function (res) {
-            if (res.statusCode === 200) {
-                writeLog('Request to shutdown daemon returned HTTP success code.');
-                callback(true, null);
-            }
-            else {
-                writeError('Request to shutdown daemon returned HTTP failure code: ' + res.statusCode);
-                callback(false, res);
-            }
-        });
-        req.on('error', function (err) {
-            writeError('Request to shutdown daemon failed.');
-            callback(false, err);
-        });
-        req.setHeader('content-type', 'application/json-patch+json');
-        req.write('true');
-        req.end();
-    }
+    writeLog('Sending POST request to shut down daemon.');
+    var http = require('http');
+    var options = {
+        hostname: 'localhost',
+        port: currentChain.apiPort,
+        path: '/api/node/shutdown',
+        body: 'true',
+        method: 'POST'
+    };
+    var req = http.request(options);
+    req.on('response', function (res) {
+        if (res.statusCode === 200) {
+            writeLog('Request to shutdown daemon returned HTTP success code.');
+            callback(true, null);
+        }
+        else {
+            writeError('Request to shutdown daemon returned HTTP failure code: ' + res.statusCode);
+            callback(false, res);
+        }
+    });
+    req.on('error', function (err) {
+        writeError('Request to shutdown daemon failed.');
+        callback(false, err);
+    });
+    req.setHeader('content-type', 'application/json-patch+json');
+    req.write('true');
+    req.end();
 }
 function createTray() {
     // Put the app in system tray
     var trayIcon;
     if (serve) {
-        trayIcon = electron_1.nativeImage.createFromPath('./src/assets/' + coin.identity + '/icon-tray.ico');
+        trayIcon = electron_1.nativeImage.createFromPath('./src/assets/exos-core/icon-tray.ico');
     }
     else {
-        trayIcon = electron_1.nativeImage.createFromPath(path.resolve(__dirname, '../../resources/dist/assets/' + coin.identity + '/icon-tray.ico'));
+        trayIcon = electron_1.nativeImage.createFromPath(path.resolve(__dirname, '../../resources/dist/assets/exos-core/icon-tray.ico'));
     }
     var systemTray = new electron_1.Tray(trayIcon);
     var contextMenu = electron_1.Menu.buildFromTemplate([
@@ -562,4 +699,68 @@ function assert(result) {
     if (result !== true) {
         throw new Error('The chain configuration is invalid. Unable to continue.');
     }
+}
+var blockchainDownloadRequest;
+function downloadFile(fileUrl, folder, callback) {
+    // If download is triggered again, abort the previous and reset.
+    if (blockchainDownloadRequest != null) {
+        try {
+            blockchainDownloadRequest.abort();
+            blockchainDownloadRequest = null;
+        }
+        catch (err) {
+            console.error(err);
+        }
+    }
+    var parse = require('url').parse;
+    var http = require('https');
+    var fs = require('fs');
+    var basename = require('path').basename;
+    var timeout = 10000;
+    var uri = parse(fileUrl);
+    var fileName = basename(uri.path);
+    var filePath = path.join(folder, fileName);
+    var file = fs.createWriteStream(filePath);
+    var timeout_wrapper = function (req) {
+        return function () {
+            console.log('abort');
+            req.abort();
+            callback(true, { size: 0, downloaded: 0, progress: 0, status: 'Timeout' }, "File transfer timeout!");
+        };
+    };
+    blockchainDownloadRequest = http.get(fileUrl).on('response', function (res) {
+        var len = parseInt(res.headers['content-length'], 10);
+        var downloaded = 0;
+        res.on('data', function (chunk) {
+            file.write(chunk);
+            downloaded += chunk.length;
+            callback(false, { url: fileUrl, target: filePath, size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), status: 'Downloading' });
+            //process.stdout.write();
+            // reset timeout
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(fn, timeout);
+        }).on('end', function () {
+            // clear timeout
+            clearTimeout(timeoutId);
+            file.end();
+            // Reset the download request instance.
+            blockchainDownloadRequest = null;
+            if (downloaded != len) {
+                callback(true, { size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Incomplete' });
+            }
+            else {
+                callback(true, { size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Done' });
+            }
+            // console.log(file_name + ' downloaded to: ' + folder);
+            // callback(null);
+        }).on('error', function (err) {
+            // clear timeout
+            clearTimeout(timeoutId);
+            callback(true, { size: 0, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Error' }, err.message);
+        });
+    });
+    // generate timeout handler
+    var fn = timeout_wrapper(blockchainDownloadRequest);
+    // set initial timeout
+    var timeoutId = setTimeout(fn, timeout);
 }

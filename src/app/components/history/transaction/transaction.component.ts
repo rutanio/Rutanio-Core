@@ -51,7 +51,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
     }
 
     public onCopiedClick() {
-        this.snackBar.open('The transaction ID has been copied to your clipboard.', null, { duration: 3000 });
+        this.snackBar.open('The transaction ID has been copied to your clipboard.', null, { duration: 3000, panelClass: ['snackbar-success'] });
         return false;
     }
 

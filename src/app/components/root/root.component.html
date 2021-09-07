@@ -15,13 +15,16 @@
 
     <mat-drawer #details mode="over" [ngClass]="{'details-full-width': handset}" (keydown.escape)="closeDetails('escape')" [opened]="detailsService.opened" position="end">
 
-        <button (click)="closeDetails('toggle button')" mat-icon-button>
-            <mat-icon>close</mat-icon>
-        </button>
+        <div *ngIf="detailsService.rutaTransaction">
+            <button (click)="closeDetails('toggle button')" mat-icon-button>
+                <mat-icon>close</mat-icon>
+            </button>
 
-        <h1 class="mat-h1" class="details-title">Transaction details</h1>
+            <h1 class="mat-h1" class="details-title">Transaction details</h1>
 
-        <app-details *ngIf="detailsService.item"></app-details>
+            <app-details *ngIf="detailsService.item"></app-details>
+        </div>
+
     </mat-drawer>
 
     <mat-drawer #drawer class="not-selectable" [(opened)]="menuOpened" [(mode)]="menuMode">
@@ -29,33 +32,16 @@
             <mat-list class="main-menu">
 
                 <div class="menu-top">
+                    <img *ngIf="showFiller" src="assets/rutanio-core/logo-rutanio.png" class="menu-top-logo">
+                    <img *ngIf="!showFiller" src="assets/rutanio-core/logo.png" class="menu-top-logo">
+                </div>
 
-                    <img src="assets/{{appState.chain}}/logo.png" class="menu-top-logo">
-                    <span *ngIf="showFiller" class="menu-top-text" mat-line>{{coinName}}</span>
-
-                    <!-- <button mat-button [matMenuTriggerFor]="menu">
-
-                    </button>
-
-                    <mat-menu #menu="matMenu">
-                        <button mat-menu-item>
-                            <mat-icon>dialpad</mat-icon>
-                            <span>Redial</span>
-                        </button>
-                        <button mat-menu-item disabled>
-                            <mat-icon>voicemail</mat-icon>
-                            <span>Check voice mail</span>
-                        </button>
-                        <button mat-menu-item>
-                            <mat-icon>notifications_off</mat-icon>
-                            <span>Disable alerts</span>
-                        </button>
-                    </mat-menu> -->
-
+                <div class="main-menu-title">
+                    <h1>Menu</h1>
                 </div>
 
                 <mat-list-item *ngIf="appModes.enabled('dashboard')" routerLinkActive="main-menu-active" routerLink="/dashboard">
-                    <mat-icon mat-list-icon>dashboard</mat-icon>
+                    <mat-icon mat-list-icon>home</mat-icon>
                     <h4 *ngIf="showFiller" mat-line>Dashboard</h4>
                 </mat-list-item>
 
@@ -63,6 +49,7 @@
                     <mat-icon mat-list-icon>account_balance_wallet</mat-icon>
                     <h4 *ngIf="showFiller" mat-line>Wallet</h4>
                 </mat-list-item>
+
 
 
                 <mat-list-item *ngIf="appModes.enabled('settings')" routerLinkActive="main-menu-active" routerLink="/settings">
@@ -93,6 +80,7 @@
 
                 <mat-list-item *ngIf="!handset && showFiller" (click)="toggleFiller()">
                     <mat-icon mat-list-icon>keyboard_arrow_left</mat-icon>
+                    <h4 *ngIf="showFiller" mat-line>Hide menu</h4>
                 </mat-list-item>
 
             </mat-list>
@@ -101,7 +89,7 @@
 
     <div class="app-sidenav-content">
 
-        <mat-toolbar class="toolbar not-selectable" [ngClass]="{'toolbar-bottom': handset}" color="primary">
+        <mat-toolbar class="toolbar not-selectable" [ngClass]="{'toolbar-bottom': handset}">
 
             <button *ngIf="appState.pageMode" routerLinkBack mat-icon-button>
                 <mat-icon>close</mat-icon>
@@ -110,20 +98,20 @@
             <span *ngIf="!handset">{{appTitle$ | async}}</span>
 
             <span *ngIf="handset && !appState.pageMode">
-                <button mat-stroked-button routerLink="/wallet/payment">
+                <button mat-flat-button routerLink="/wallet/payment">
                     <mat-icon>credit_card</mat-icon> Payment
                 </button>
             </span>
 
             <span class="fill-remaining-vertical"></span>
 
-            <!-- <button mat-icon-button>
-        <mat-icon>cloud</mat-icon>
-      </button>
+            <p class="root-text" *ngIf="updateService.available" >
+                A new version is available!
+            </p>
 
-      <button mat-icon-button>
-        <mat-icon>cloud_off</mat-icon>
-      </button> -->
+            <button mat-icon-button *ngIf="updateService.available" matTooltip="Update available. Click to view details." routerLink="/update">
+                <mat-icon [matBadge]="1">file_download</mat-icon>
+            </button>
 
             <button *ngIf="StakingStatus" mat-icon-button [matTooltip]="StakingStatus" routerLink="/wallet">
                 <mat-icon>star</mat-icon>
@@ -133,11 +121,9 @@
                 <mat-icon [matBadge]="notifications.countUnread" matBadgeColor="warn" matBadgeOverlap="true" [matBadgeHidden]="!notifications.anyUnread">notifications</mat-icon>
             </button>
 
-            <button mat-icon-button *ngIf="updateService.available" matTooltip="Update available. Click to view details." routerLink="/update">
-                <mat-icon>arrow_downward</mat-icon>
-            </button>
 
-            <button *ngIf="networkShowDownload" mat-icon-button [matTooltip]="networkStatusTooltip" routerLink="/network">
+
+            <button class="icon-download" *ngIf="networkShowDownload" mat-icon-button [matTooltip]="networkStatusTooltip" routerLink="/network">
                 <mat-icon>cloud_download</mat-icon>
             </button>
 
@@ -149,17 +135,8 @@
                 <mat-icon>cloud_off</mat-icon>
             </button>
 
-            <button *ngIf="appModes.enabled('identity')" mat-icon-button [matTooltip]="identityTooltip" [matMenuTriggerFor]="identityMenu">
-                <mat-icon *ngIf="!identityService.identity">person</mat-icon>
-                <img *ngIf="identityService.identity" class="mat-icon notranslate material-icons mat-icon-no-color" [src]="identityService.getImage(identityService.identity.content.image)">
-            </button>
-
-            <button *ngIf="!appState.pageMode && !appState.handset" mat-icon-button [matMenuTriggerFor]="moreMenu">
+            <button mat-icon-button [matMenuTriggerFor]="moreMenu">
                 <mat-icon>more_vert</mat-icon>
-            </button>
-
-            <button *ngIf="!appState.pageMode && appState.handset" mat-icon-button (click)="openMenu()">
-                <mat-icon>apps</mat-icon>
             </button>
 
             <mat-menu #moreMenu="matMenu">

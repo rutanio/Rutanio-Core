@@ -17,10 +17,27 @@
     }
 
     .details-row-value {
+        display: flex;
     }
 
     .details-full-width {
         min-width: 100% !important;
+    }
+
+    .coinUnit {
+        margin-left: 5px;
+    }
+
+    .mat-icon-button {
+        width: 20px;
+        height: 20px;
+        line-height: normal;
+        margin-left: 5px;
+    }
+
+    .mat-icon {
+        font-size: 20px;
+        line-height: normal;
     }
 
 }

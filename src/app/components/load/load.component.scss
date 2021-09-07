@@ -1,16 +1,209 @@
+.splash-container {
+    background-image: url('../../../assets/rutanio-core/rutanio.gif');
+    background-size: cover;
+    align-items: flex-start;
+}
+
+.network-load {
+    margin-left: 150px;
+}
+
+.mat-progress-spinner circle, .mat-spinner circle {
+    stroke: white !important;
+}
+
 .load {
+
+    .bar-progress {
+        width: 100%;
+    }
+
+    .bar-progress > * .mat-progress-bar-buffer {
+        background-color: white;
+    }
+
+    .bar-progress > * .mat-progress-bar-fill::after {
+        background-color: #5fe9fd;
+    }
+
+    
+
+    background-size: cover;
+
     .load-text
     {
+        width: 100%;
         margin-top: 20px;
         text-align: center;
     }
 
+    .chain-name {
+        text-transform: uppercase;
+    }
+
     .load-logo {
-        width: 200px;
+        width: 300px;
         margin-bottom: 20px;
     }
 }
 
+.name{
+    color: white;
+}
+
 .custom-file-mode {
     width: 186px;
+}
+
+.path {
+    overflow-wrap: break-word;
+    max-width: 300px;
+}
+
+.setup-headers-align {
+    padding-bottom: 2em;
+    padding-top: 2em;
+}
+
+.setup-headers-align .mat-expansion-panel-header-title,
+.setup-headers-align .mat-expansion-panel-header-description {
+    flex-basis: 0;
+}
+
+.setup-headers-align .mat-expansion-panel-header-description {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.start-button {
+    background: linear-gradient(to right,#5fecff, #52185e);
+    background-size: cover;
+    font-size: 1.2rem;
+    color: white !important;
+}
+
+.button-confirm {
+    background: linear-gradient(to right,#5fecff, #52185e);
+    background-size: cover;
+    color: white !important;
+}
+
+.onload-button {
+    background-color: #561265 !important;
+    background-size: cover;
+    color: white !important;
+    border-radius: 0.7rem !important;
+}
+
+.advanced-form-field {
+    width: 100%;
+}
+
+.load-feature-status {
+    text-align: left;
+    color: silver;
+    margin-bottom: 0.1em;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 2em 2em;
+    grid-template-areas: "name status";
+}
+
+.load-feature-status .name {
+    grid-area: name;
+    height: 24px;
+
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.load-feature-status .status {
+    grid-area: status;
+    text-align: left;
+    height: 24px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.load-feature-status mat-icon {
+    font-size: 24px !important;
+    color: green;
+}
+
+.mat-expansion-panel {
+    background-color: white;
+}
+
+.loadGrid {
+    display: flex;
+    flex-flow: row;
+}
+
+.network-start {
+    display: flex;
+    flex-flow: column;
+    text-align: center;
+    color: white;
+}
+
+.mat-form-field-flex {
+    border-radius: 5px !important;
+    color: white;
+    font-weight: bold;
+}
+
+.loading-screen {
+    width: 52%;
+    display: flex;
+    flex-flow: column;
+    align-items: flex-end;
+    color: white;
+}
+
+.loading-content {
+    width: 52%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+
+/* mat-form-field styling */
+::-webkit-input-placeholder { /* Edge */
+    color: rgba(255, 255, 255, 0.70) !important;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: rgba(255, 255, 255, 0.70) !important;
+}
+
+::placeholder {
+    color: rgba(255, 255, 255, 0.70) !important;
+}
+
+/* mat-form Border */
+.mat-form-field .mat-form-field-label, .mat-form-field > * .mat-select-placeholder {
+    color: white;
+}
+.mat-form-field .mat-form-field-wrapper .mat-form-field-underline , .mat-form-field.mat-focused .mat-form-field-wrapper .mat-form-field-underline {
+    background-color: white;
+    height: 1px;
+}
+.mat-select .mat-select-value , .mat-select .mat-select-arrow{
+    color: white;
+}
+
+.network-remember {
+    text-align: start;
+}
+
+.mat-checkbox .mat-checkbox-inner-container .mat-checkbox-frame ,
+.mat-checkbox.mat-checkbox-checked .mat-checkbox-inner-container .mat-checkbox-frame , 
+.mat-checkbox.mat-checkbox-checked .mat-checkbox-inner-container .mat-checkbox-background {
+    border-color: white;
+    background-color: transparent;
 }

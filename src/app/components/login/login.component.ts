@@ -59,6 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.loadWallets();
+        this.electronService.ipcRenderer.send('resize-login');
     }
 
     ngOnDestroy() {
@@ -108,6 +109,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         // Make sure we shut down the existing node when user choose the change mode action.
         this.apiService.shutdownNode().subscribe(response => {
         });
+        this.electronService.ipcRenderer.send('kill-process');
 
         this.router.navigateByUrl('/load');
     }
@@ -181,7 +183,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.globalService.setWalletName(this.selectedAccount.name);
         this.storageService.setWalletName(this.selectedAccount.name, coinUnit);
 
-        this.globalService.setCoinName('Rutanio');
+        this.globalService.setCoinName('RUTA');
         this.globalService.setCoinUnit(coinUnit);
 
         this.getCurrentNetwork();
@@ -255,7 +257,7 @@ export class LoginComponent implements OnInit, OnDestroy {
                     this.globalService.setNetwork(responseMessage.network);
 
                     if (responseMessage.network === 'RutanioMain') {
-                        this.globalService.setCoinName('Ruta');
+                        this.globalService.setCoinName('RUTA');
                         this.globalService.setCoinUnit('RUTA');
                     } else if (responseMessage.network === 'CityTest') {
                         this.globalService.setCoinName('CityTest');
@@ -301,6 +303,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
                     this.identityService.unlock(fullPath, walletLoad.password);
 
+                    console.error('going to dashboard');
                     this.router.navigateByUrl('/dashboard');
                     // }
                 },
@@ -308,6 +311,9 @@ export class LoginComponent implements OnInit, OnDestroy {
                     if (error.status === 403 || error.status === 400) { // Invalid password / empty password
                         const msg = error.error.errors[0].message;
                         this.errorMessage = msg;
+                    }
+                    if (error.status === undefined) { // Invalid password / empty password
+                        this.errorMessage = 'Empty password field, please it out';
                     }
 
                     this.wallet.stop();

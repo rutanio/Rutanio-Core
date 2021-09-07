@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, nativeImage, screen, Tray, shell, dialog } from 'electron';
+import { machineIdSync} from 'node-machine-id';
 import * as path from 'path';
 import * as url from 'url';
 import * as os from 'os';
@@ -56,11 +57,11 @@ enum DaemonState {
 interface Chain {
     name: string;
     identity: string;
+    chain: string;
     tooltip: string;
     port: number;
     rpcPort: number;
     apiPort?: number;
-    wsPort?: number;
     network: string;
     mode?: string;
     path: string; // Used to define a custom path to launch dll with dotnet.
@@ -79,10 +80,13 @@ autoUpdater.autoDownload = false;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow = null;
 let daemonState: DaemonState;
+let resetMode = false;
+let resetArg = null;
 let contents = null;
 let currentChain: Chain;
 let settings: Settings;
 let hasDaemon = false;
+let daemons = [];
 
 const args = process.argv.slice(1);
 const serve = args.some(val => val === '--serve');
@@ -95,6 +99,10 @@ require('electron-context-menu')({
 process.on('uncaughtException', (error) => {
     writeLog('Uncaught exception happened:');
     writeLog('Error: ' + error);
+});
+
+process.on('exit', function (code) {
+    return console.log(`About to exit with code ${code}`);
 });
 
 ipcMain.on('start-daemon', (event, arg: Chain) => {
@@ -116,8 +124,6 @@ ipcMain.on('start-daemon', (event, arg: Chain) => {
     assert(isNumber(arg.port));
     assert(isNumber(arg.rpcPort));
     assert(isNumber(arg.apiPort));
-    assert(isNumber(arg.wsPort));
-    assert(arg.network.length < 20);
 
     currentChain = arg;
 
@@ -163,20 +169,29 @@ ipcMain.on('daemon-change', (event, arg: any) => {
     daemonState = DaemonState.Changing;
 });
 
+ipcMain.on('check-storage', (event, arg: string) => {
+    var diskspace = require('diskspace');
+    let diskUnit = '/';
+    if (os.platform() === 'win32') {
+        diskUnit = 'C'
+    }
+
+    diskspace.check(diskUnit, function (err, result) {
+        event.returnValue = result.free;
+    });
+});
+
 // Called when the app needs to reset the blockchain database. It will delete the "blocks", "chain" and "coinview" folders.
 ipcMain.on('reset-database', (event, arg: string) => {
 
     writeLog('reset-database: User want to reset database, first attempting to shutdown the node.');
 
     // Make sure the daemon is shut down first:
-    shutdownDaemon((success, error) => {
-        const userDataPath = app.getPath('userData');
-        const appDataFolder = path.dirname(userDataPath);
-
-        const dataFolder = path.join(appDataFolder, 'Blockcore', 'rutanio', arg);
+        const appDataFolder = parseDataFolder([]);
+        const dataFolder = path.join(appDataFolder, 'rutanio', 'RutanioMain');
         const folderBlocks = path.join(dataFolder, 'blocks');
         const folderChain = path.join(dataFolder, 'chain');
-        const folderCoinView = path.join(dataFolder, 'coinview');
+        const folderCoinView = path.join(dataFolder, 'coindb');
         const folderCommon = path.join(dataFolder, 'common');
         const folderProvenHeaders = path.join(dataFolder, 'provenheaders');
         const folderFinalizedBlock = path.join(dataFolder, 'finalizedBlock');
@@ -188,19 +203,129 @@ ipcMain.on('reset-database', (event, arg: string) => {
         deleteFolderRecursive(folderCommon);
         deleteFolderRecursive(folderProvenHeaders);
         deleteFolderRecursive(folderFinalizedBlock);
+
+    event.returnValue = 'OK';
+});
+
+ipcMain.on('resize-main', (event, arg) => {
+    mainWindow.setSize(1366, 768);
+    mainWindow.maximizable = true;
+    mainWindow.resizable = true;
+    mainWindow.center();
+});
+
+function parseDataFolder(arg: any) {
+    let blockcorePlatform = '.blockcore';
+    if (os.platform() === 'win32') {
+        blockcorePlatform = 'Blockcore';
+    }
+    const nodeDataFolder = path.join(getAppDataPath(), blockcorePlatform);
+    arg.unshift(nodeDataFolder);
+    const dataFolder = path.join(...arg);
+    return dataFolder;
+}
+
+ipcMain.on('download-blockchain-package', (event, arg: any) => {
+
+    console.log('download-blockchain-package');
+
+    const appDataFolder = parseDataFolder([]);
+    const dataFolder = path.join(appDataFolder, 'rutanio','RutanioMain');
+
+    // Get the folder to download zip to:
+    const targetFolder = path.dirname(dataFolder);
+    
+    if (!fs.existsSync(dataFolder)) {
+        console.log('The folder does not EXIST!');
+        fs.mkdirSync(dataFolder , { recursive: true });
+    }
+
+    // We must have this in a try/catch or crashes will halt the UI.
+    try {
+        downloadFile(arg.url, targetFolder, (finished: any, progress: { status: string; }, error: { toString: () => string; }) => {
+
+            contents.send('download-blockchain-package-finished', finished, progress, error);
+
+            if (error) {
+                console.error('Error during downloading: ' + error.toString());
+            }
+
+            if (finished) {
+                console.log('FINISHED!!');
+            }
+            else {
+            }
+        });
+    }
+    catch (err) {
+
+    }
+
+    event.returnValue = 'OK';
+});
+
+
+
+ipcMain.on('download-blockchain-package-abort', (event, arg: any) => {
+    try {
+        blockchainDownloadRequest.abort();
+        blockchainDownloadRequest = null;
+    }
+    catch (err) {
+        event.returnValue = err.message;
+    }
+
+    contents.send('download-blockchain-package-finished', true, { status: 'Cancelled', progress: 0, size: 0, downloaded: 0 }, 'Cancelled');
+
+    event.returnValue = 'OK';
+});
+
+ipcMain.on('unpack-blockchain-package', (event, arg: any) => {
+
+    console.log('CALLED!!!! - unpack-blockchain-package');
+
+    const appDataFolder = parseDataFolder([]);
+    const targetFolder = path.join(appDataFolder, 'rutanio', 'RutanioMain');
+    let sourceFile = arg.source;
+
+
+    const extract = require('extract-zip');
+    extract(sourceFile, { dir: targetFolder }).then(() => {
+        fs.unlinkSync(sourceFile);
+        console.log('FINISHED UNPACKING!');
+        contents.send('unpack-blockchain-package-finished', null);
+    }).catch(err => {
+        fs.unlinkSync(sourceFile);
+        console.error('Failed to unpack: ', err);
+        contents.send('unpack-blockchain-package-finished', err);
     });
 
     event.returnValue = 'OK';
 });
 
+ipcMain.on('resize-login', (event, arg) => {
+
+    mainWindow.center();
+});
+
 ipcMain.on('open-data-folder', (event, arg: string) => {
-    const userDataPath = app.getPath('userData');
-    const appDataFolder = path.dirname(userDataPath);
-    const dataFolder = path.join(appDataFolder, 'Blockcore', 'rutanio', arg);
+
+    let userDataPath = getAppDataPath();
+
+    let dataFolder = null;
+    if (os.platform() === 'win32') {
+        dataFolder = path.join(userDataPath, 'Blockcore', 'rutanio', arg);
+        writeLog(dataFolder);
+    } else {
+        dataFolder = path.join(userDataPath, '.blockcore', 'rutanio', arg);
+        writeLog(dataFolder);
+    }
+
     shell.openPath(dataFolder);
 
     event.returnValue = 'OK';
 });
+
 
 ipcMain.on('open-dev-tools', (event, arg: string) => {
     mainWindow.webContents.openDevTools();
@@ -277,16 +402,50 @@ function deleteFolderRecursive(folder) {
     }
 }
 
+function getAppDataPath() {
+    switch (process.platform) {
+        case 'darwin': {
+            return path.join(process.env.HOME);
+        }
+        case "win32": {
+            return path.join(process.env.APPDATA);
+        }
+        case "linux": {
+            writeLog(path.join(process.env.HOME).toString());
+            return path.join(process.env.HOME);
+
+
+        }
+        default: {
+            console.log("Unsupported platform!");
+            process.exit(1);
+        }
+    }
+}
+
+
 function createWindow() {
     // Create the browser window.
+    let iconpath;
+    if (serve) {
+        iconpath = nativeImage.createFromPath('./src/assets/rutanio-core/logo-tray.png');
+    } else {
+        iconpath = nativeImage.createFromPath(path.resolve(__dirname, '..//..//resources//dist//assets//rutanio-core//logo-tray.png'));
+    }
+
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
     mainWindow = new BrowserWindow({
-        width: 1150,
-        height: 800,
+        width: 1366,
+        minWidth: 1342,
+        icon: iconpath,
+        height: 768,
         frame: true,
-        minWidth: 260,
-        minHeight: 400,
+        center: true,
+        resizable: true,
+
         title: 'Rutanio Core',
-        webPreferences: { webSecurity: false, nodeIntegration: true }
+        webPreferences: { webSecurity: false, nodeIntegration: true, contextIsolation: false }
     });
 
     contents = mainWindow.webContents;
@@ -354,7 +513,7 @@ function createWindow() {
     mainWindow.on('minimize', (event) => {
         if (!settings.showInTaskbar) {
             event.preventDefault();
-           // mainWindow.hide();
+            // mainWindow.hide();
         }
     });
 
@@ -377,6 +536,27 @@ app.on('ready', () => {
 
 app.on('before-quit', () => {
     writeLog('Rutanio Core was exited.');
+    exitGuard();
+
+});
+
+console.log('NODE_ENV: ', process.env);
+
+// SSL/TSL: this is the self signed certificate support
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    // On certificate error we disable default behaviour (stop loading the page)
+    // and we then say "it is all fine - true" to the callback
+    event.preventDefault();
+    callback(true);
+});
+
+ipcMain.on('kill-process', () => {
+    exitGuard();
+})
+
+ipcMain.on('track-id', (event) => {
+    const uuid = machineIdSync(true);
+    event.sender.send('tracked-id', uuid);
 });
 
 const shutdown = (callback) => {
@@ -407,12 +587,9 @@ const shutdown = (callback) => {
     });
 };
 
-const quit = () => {
-    app.quit();
-};
 
 app.on('window-all-closed', () => {
-    quit();
+    app.quit();
 });
 
 app.on('activate', () => {
@@ -427,14 +604,11 @@ function startDaemon(chain: Chain) {
     hasDaemon = true;
     const folderPath = chain.path || getDaemonPath();
     let daemonName;
-    writeLog(chain.identity);
+
     if (chain.identity === 'ruta') {
-        daemonName = 'Rutanio.Node';
-    } else if (chain.identity === 'stratis') {
-        daemonName = 'Stratis.StratisD';
-    } else if (chain.identity === 'bitcoin') {
-        daemonName = 'Stratis.StratisD';
+        daemonName = 'Blockcore.Node';
     }
+
 
     // If path is not specified and Win32, we'll append .exe
     if (!chain.path && os.platform() === 'win32') {
@@ -457,12 +631,28 @@ function getDaemonPath() {
     } else if (os.platform() === 'linux') {
         apiPath = path.resolve(__dirname, '..//..//resources//daemon//');
     } else {
-        apiPath = path.resolve(__dirname, '..//..//resources//daemon//bin//publish');
+        apiPath = path.resolve(__dirname, '..//..//Resources//daemon//');
     }
 
     return apiPath;
 }
 
+function exitGuard() {
+    console.log('Exit Guard is processing...');
+    console.log(daemons[0])
+    if (daemons && daemons.length > 0) {
+        for (var i = 0; i < daemons.length; i++) {
+            try {
+                console.log('Killing (' + daemons[i].pid + '): ' + daemons[i].spawnfile);
+                daemons[i].kill();
+            }
+            catch (err) {
+                console.log('Failed to kill daemon: ' + err);
+                console.log(daemons[i]);
+            }
+        }
+    }
+}
 
 function launchDaemon(apiPath: string, chain: Chain) {
     let daemonProcess;
@@ -491,7 +681,10 @@ function launchDaemon(apiPath: string, chain: Chain) {
     commandLineArguments.push('-port=' + chain.port);
     commandLineArguments.push('-rpcport=' + chain.rpcPort);
     commandLineArguments.push('-apiport=' + chain.apiPort);
-    commandLineArguments.push('-wsport=' + chain.wsPort);
+    commandLineArguments.push('-dbtype=rocksdb');
+    commandLineArguments.push('-txindex=1');
+
+    commandLineArguments.push('--chain=RUTA');
 
     if (chain.mode === 'light') {
         commandLineArguments.push('-light');
@@ -522,26 +715,29 @@ function launchDaemon(apiPath: string, chain: Chain) {
         });
     }
 
+    daemons.push(daemonProcess);
+
+
     daemonProcess.stdout.on('data', (data) => {
-        writeDebug(`Rutanio Core: ${data}`);
+        writeDebug(`Rutanio Node: ${data}`);
     });
 
     /** Exit is triggered when the process exits. */
     daemonProcess.on('exit', function (code, signal) {
-        writeLog(`Rutanio Core daemon process exited with code ${code} and signal ${signal} when the state was ${daemonState}.`);
+        writeLog(`Rutanio Node daemon process exited with code ${code} and signal ${signal} when the state was ${daemonState}.`);
 
         // There are many reasons why the daemon process can exit, we'll show details
         // in those cases we get an unexpected shutdown code and signal.
         if (daemonState === DaemonState.Changing) {
             writeLog('Daemon exit was expected, the user is changing the network mode.');
         } else if (daemonState === DaemonState.Starting) {
-            contents.send('daemon-error', `CRITICAL: Rutanio Core daemon process exited during startup with code ${code} and signal ${signal}.`);
+            contents.send('daemon-error', `CRITICAL: Rutanio Node daemon process exited during startup with code ${code} and signal ${signal}.`);
         } else if (daemonState === DaemonState.Started) {
-            contents.send('daemon-error', `Rutanio Core daemon process exited manually or crashed, with code ${code} and signal ${signal}.`);
+            contents.send('daemon-error', `Rutanio Node daemon process exited manually or crashed, with code ${code} and signal ${signal}.`);
         } else {
             // This is a normal shutdown scenario, but we'll show error dialog if the exit code was not 0 (OK).
             if (code !== 0) {
-                contents.send('daemon-error', `Rutanio Core daemon shutdown completed, but resulted in exit code ${code} and signal ${signal}.`);
+                contents.send('daemon-error', `Rutanio Node daemon shutdown completed, but resulted in exit code ${code} and signal ${signal}.`);
             } else {
                 // Check is stopping of daemon has been requested. If so, we'll notify the UI that it has completed the exit.
                 contents.send('daemon-exited');
@@ -553,7 +749,7 @@ function launchDaemon(apiPath: string, chain: Chain) {
     );
 
     daemonProcess.on('error', (code, signal) => {
-        writeError(`Rutanio Core daemon process failed to start. Code ${code} and signal ${signal}.`);
+        writeError(`Rutanio Node daemon process failed to start. Code ${code} and signal ${signal}.`);
     });
 }
 
@@ -574,7 +770,6 @@ function shutdownDaemon(callback) {
         return;
     }
 
-    if (process.platform !== 'darwin') {
         writeLog('Sending POST request to shut down daemon.');
 
         const http = require('http');
@@ -582,6 +777,7 @@ function shutdownDaemon(callback) {
             hostname: 'localhost',
             port: currentChain.apiPort,
             path: '/api/node/shutdown',
+            body: 'true',
             method: 'POST'
         };
 
@@ -605,16 +801,16 @@ function shutdownDaemon(callback) {
         req.setHeader('content-type', 'application/json-patch+json');
         req.write('true');
         req.end();
-    }
+
 }
 
 function createTray() {
     // Put the app in system tray
     let trayIcon;
     if (serve) {
-        trayIcon = nativeImage.createFromPath('./src/assets/' + coin.identity + '/icon-tray.ico');
+        trayIcon = nativeImage.createFromPath('./src/assets/rutanio-core/icon-tray.ico');
     } else {
-        trayIcon = nativeImage.createFromPath(path.resolve(__dirname, '../../resources/dist/assets/' + coin.identity + '/icon-tray.ico'));
+        trayIcon = nativeImage.createFromPath(path.resolve(__dirname, '../../resources/dist/assets/rutanio-core/icon-tray.ico'));
     }
 
     const systemTray = new Tray(trayIcon);
@@ -686,4 +882,82 @@ function assert(result: boolean) {
     if (result !== true) {
         throw new Error('The chain configuration is invalid. Unable to continue.');
     }
+}
+
+var blockchainDownloadRequest;
+
+function downloadFile(fileUrl, folder, callback) {
+    // If download is triggered again, abort the previous and reset.
+    if (blockchainDownloadRequest != null) {
+        try {
+            blockchainDownloadRequest.abort();
+            blockchainDownloadRequest = null;
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    const { parse } = require('url');
+    const http = require('https');
+    const fs = require('fs');
+    const { basename } = require('path');
+
+    var timeout = 10000;
+
+    const uri = parse(fileUrl);
+    const fileName = basename(uri.path);
+    const filePath = path.join(folder, fileName);
+
+    var file = fs.createWriteStream(filePath);
+
+    var timeout_wrapper = function (req) {
+        return function () {
+            console.log('abort');
+            req.abort();
+            callback(true, { size: 0, downloaded: 0, progress: 0, status: 'Timeout' }, "File transfer timeout!");
+        };
+    };
+
+    blockchainDownloadRequest = http.get(fileUrl).on('response', function (res) {
+        var len = parseInt(res.headers['content-length'], 10);
+        var downloaded = 0;
+
+        res.on('data', function (chunk) {
+            file.write(chunk);
+            downloaded += chunk.length;
+
+            callback(false, { url: fileUrl, target: filePath, size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), status: 'Downloading' });
+            //process.stdout.write();
+            // reset timeout
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(fn, timeout);
+        }).on('end', function () {
+            // clear timeout
+            clearTimeout(timeoutId);
+            file.end();
+
+            // Reset the download request instance.
+            blockchainDownloadRequest = null;
+
+            if (downloaded != len) {
+                callback(true, { size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Incomplete' });
+            }
+            else {
+                callback(true, { size: len, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Done' });
+            }
+
+            // console.log(file_name + ' downloaded to: ' + folder);
+            // callback(null);
+        }).on('error', function (err) {
+            // clear timeout
+            clearTimeout(timeoutId);
+            callback(true, { size: 0, downloaded: downloaded, progress: (100.0 * downloaded / len).toFixed(2), url: fileUrl, target: filePath, status: 'Error' }, err.message);
+        });
+    });
+
+    // generate timeout handler
+    var fn = timeout_wrapper(blockchainDownloadRequest);
+
+    // set initial timeout
+    var timeoutId = setTimeout(fn, timeout);
 }

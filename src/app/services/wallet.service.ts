@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { Subscription, Subject } from 'rxjs';
 import { GlobalService } from './global.service';
 import { WalletInfo } from '../classes/wallet-info';
+import { FullFilteredWalletInfo } from '../classes/full-filtered-wallet-info';
 import { TransactionInfo } from '../classes/transaction-info';
 import { ApplicationStateService } from './application-state.service';
 import { ApiService } from './api.service';
 import { GeneralInfo } from '../classes/general-info';
 import { Logger } from './logger.service';
 import { StakingInfo } from '../classes/staking-info';
+import { LocaleService } from 'src/app/services/locale.service';
 
 @Injectable({
     providedIn: 'root'
@@ -45,6 +47,9 @@ export class WalletService {
     public stakingInfo: StakingInfo;
     public activeWallet: any;
 
+    public daysAhead: string;
+    public transactionListEmpty = false;
+
     // tslint:disable-next-line: variable-name
     private _history = new Subject();
     public history$ = this._history.asObservable();
@@ -53,6 +58,7 @@ export class WalletService {
         private apiService: ApiService,
         private globalService: GlobalService,
         private log: Logger,
+        public localeService: LocaleService,
         public appState: ApplicationStateService
     ) {
 
@@ -81,14 +87,74 @@ export class WalletService {
         this.startSubscriptions();
     }
 
-    public stop() {
+    public async stop() {
         this.walletName = '';
         this.coinUnit = '';
         this.confirmedBalance = null;
         this.unconfirmedBalance = null;
         this.active = false;
         this.transactionArray = [];
-        this.cancelSubscriptions();
+        await this.cancelSubscriptions();
+    }
+
+    extractStrigData(s, prefix, suffix) {
+        let i = s.indexOf(prefix);
+        if (i >= 0) {
+            s = s.substring(i + prefix.length);
+        }
+        else {
+            return '';
+        }
+        if (suffix) {
+            i = s.indexOf(suffix);
+            if (i >= 0) {
+                s = s.substring(0, i);
+            }
+            else {
+            return '';
+            }
+        }
+        return s;
+    }
+
+    public timingAhead(days){
+        const calculateTimimg = d => {
+            let years = 0;
+            let months = 0;
+            let day = 0;
+            while (d){
+                if (d >= 365){
+                    years++;
+                    d -= 365;
+                }else if (d >= 30) {
+                    months++;
+                    d -= 30;
+                }else{
+                    day++;
+                    d--;
+               }
+            }
+            return {
+               years, months, day
+            };
+        };
+        const timing = calculateTimimg(days);
+        if (timing.years !== 0) {
+            return `${timing.years} year(s), ${timing.months} month(s) and ${timing.day} day(s) behind`;
+        }else if (timing.years === 0 && timing.months !== 0) {
+            return `${timing.months} month(s) and ${timing.day} day(s) behind`;
+        }else if (timing.years === 0 && timing.months === 0){
+            return `${timing.day} day(s) behind`;
+        }
+    }
+
+    fetchBlockData() {
+        this.apiService.getStats()
+            .subscribe( data => {
+                const tipAge = parseInt(this.extractStrigData(data, 'Age:', '.'), 10);
+                const pendingTime = this.timingAhead(tipAge);
+                this.daysAhead = pendingTime;
+            });
     }
 
     public startStaking(password: string) {
@@ -140,6 +206,13 @@ export class WalletService {
         });
     }
 
+    public cancelWalletHistory() {
+        if (this.walletHistorySubscription) {
+            this.walletHistorySubscription.unsubscribe();
+        }
+        this.transactionArray = [];
+    }
+
     private cancelSubscriptions() {
         if (this.walletBalanceSubscription) {
             this.walletBalanceSubscription.unsubscribe();
@@ -156,6 +229,10 @@ export class WalletService {
         if (this.generalWalletInfoSubscription) {
             this.generalWalletInfoSubscription.unsubscribe();
         }
+    }
+
+    public startwalletSubscription() {
+        this.getHistory();
     }
 
     private startSubscriptions() {
@@ -195,15 +272,19 @@ export class WalletService {
             );
     }
 
-    private getHistory() {
-        const walletInfo = new WalletInfo(this.globalService.getWalletName());
+    public getHistory() {
+        const walletInfo = new FullFilteredWalletInfo(this.globalService.getWalletName());
         let historyResponse;
-        this.walletHistorySubscription = this.apiService.getWalletHistory(walletInfo)
+        this.walletHistorySubscription = this.apiService.getFullFilteredHistory(walletInfo)
             .subscribe(
                 response => {
                     if (!!response.history && response.history[0].transactionsHistory.length > 0) {
+                        this.transactionListEmpty = false;
                         historyResponse = response.history[0].transactionsHistory;
                         this.getTransactionInfo(historyResponse);
+                    }
+                    else {
+                        this.transactionListEmpty = true;
                     }
                 },
                 error => {
@@ -213,7 +294,7 @@ export class WalletService {
             );
     }
 
-    private getTransactionInfo(transactions: any) {
+    private async getTransactionInfo(transactions: any) {
         this.transactionArray = [];
 
         for (const transaction of transactions) {
@@ -235,10 +316,30 @@ export class WalletService {
                 transactionFee = 0;
             }
 
+            // const responseApi = await this.apiService.getRawTransaction(transactionId);
+
+            let transactionOriginAddress;
+            let transactionDestinyAddress;
+            if (transaction.type !== 'staked') {
+                const addressListsInputs = [];
+                for (const iterator of transaction.inputs) {
+                    addressListsInputs.push(iterator.address);
+                }
+                transactionOriginAddress = addressListsInputs.filter( (val, index) => {
+                    return addressListsInputs.indexOf(val) === index;
+                });
+                console.error('transactionOriginAddress: ', transactionOriginAddress);
+                const addressListsOutputs = [];
+                for (const iterator of transaction.payments) {
+                    addressListsOutputs.push(iterator.destinationAddress);
+                }
+                transactionDestinyAddress = addressListsOutputs;
+            }
+
             const transactionConfirmedInBlock = transaction.confirmedInBlock;
             const transactionTimestamp = transaction.timestamp;
 
-            this.transactionArray.push(new TransactionInfo(transactionType, transactionId, transactionAmount, transactionFee, transactionConfirmedInBlock, transactionTimestamp));
+            this.transactionArray.push(new TransactionInfo(transactionType, transactionId, transactionAmount, transactionFee, transactionConfirmedInBlock, transactionTimestamp, transactionOriginAddress, transactionDestinyAddress));
         }
 
         this._history.next(this.transactionArray);

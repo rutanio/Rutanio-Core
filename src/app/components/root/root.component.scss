@@ -1,3 +1,18 @@
+.mat-tooltip {
+/* your own custom styles here */
+/* e.g. */
+background-color: #8a4b93 !important;
+}
+
+::ng-deep snack-bar-container.snackbar {
+    background: green !important;
+    text-align: center;
+}
+
+p.ng-star-inserted.root-text {
+    margin: 0px;
+}
+
 .root {
   .daemon-shutdown-status {
     z-index: 10000;
@@ -7,6 +22,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .icon-download {
+      animation: blinker 2s linear infinite;
+  }
+
+  @keyframes blinker {
+      50% {
+          opacity: 0;
+      }
+
   }
 
   .daemon-shutdown-content {
@@ -40,10 +66,48 @@
       justify-content: center;
   }
 
-  .menu-top-logo {
-      width: 32px;
-      height: 32px;
+  .mat-drawer {
+    background: #341139;
+    color: white;
   }
+
+  .not-selectable {
+      border-right: 0;
+  }
+
+  .menu-top-logo {
+      height: 40px;
+  }
+
+  .swaps-opt:hover > * .rutanio-logo, .swaps-opt.main-menu-active > * .rutanio-logo {
+      opacity: 1;
+  }
+
+  .rutanio-logo {
+    width: 24px;
+    height: 24px;
+    opacity: 0.5;
+}
+
+  .toolbar {
+    background-color: #341139;
+    color: white;
+   }
+
+   .mat-card {
+    border: 55px !important;
+    border-radius: 25px !important;
+   }
+
+   .mat-list .mat-list-item {
+       border-radius: 10px;
+       border-right: 0;
+   }
+
+   mat-list-item > h4 {
+    color: white;
+    font-weight: bold;
+}
 
   .menu-top-text {
     margin-left: 20px;
@@ -52,4 +116,8 @@
     line-height: 32px;
     font-size: 20px;
 }
+
+    .app-sidenav-content {
+        background-color: #1c061f;
+    }
 }

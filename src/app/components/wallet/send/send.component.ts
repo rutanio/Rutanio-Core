@@ -5,6 +5,7 @@ import { GlobalService } from '../../../services/global.service';
 import { ApiService } from '../../../services/api.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { TransactionBuilding } from '../../../classes/transaction-building';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { CoinNotationPipe } from '../../../shared/pipes/coin-notation.pipe';
@@ -14,6 +15,8 @@ import { WalletInfo } from '../../../classes/wallet-info';
 import { Router } from '@angular/router';
 import { WalletService } from '../../../services/wallet.service';
 import { TransactionResult } from 'src/app/classes/transaction-result';
+import { LocaleService } from 'src/app/services/locale.service';
+
 
 @Component({
     selector: 'app-send',
@@ -32,6 +35,7 @@ export class SendComponent implements OnInit, OnDestroy {
     public apiError: string;
     public transactionResult: TransactionResult;
     public transaction: TransactionBuilding;
+    public notFunds = '';
 
     public showInputField = true;
     public showSendingField = false;
@@ -46,10 +50,12 @@ export class SendComponent implements OnInit, OnDestroy {
         public readonly appState: ApplicationStateService,
         private apiService: ApiService,
         private location: Location,
+        public snackBar: MatSnackBar,
         private router: Router,
         private wallet: WalletService,
-        private globalService: GlobalService,
-        private fb: FormBuilder
+        public globalService: GlobalService,
+        private fb: FormBuilder,
+        public localeService: LocaleService
     ) {
         this.appState.pageMode = true;
         this.buildSendForm();
@@ -82,7 +88,7 @@ export class SendComponent implements OnInit, OnDestroy {
         amount: {
             required: 'An amount is required.',
             pattern: 'Enter a valid transaction amount. Only positive numbers and no more than 8 decimals are allowed.',
-            min: 'The amount has to be more or equal to 0.00001 RUTA.',
+            min: 'The amount has to be more or equal to 0.00001 RUTAS.',
             max: 'The total transaction amount exceeds your available balance.'
         },
         fee: {
@@ -180,6 +186,7 @@ export class SendComponent implements OnInit, OnDestroy {
             this.sendForm.get('fee').value,
             true
         );
+        this.notFunds = '';
 
         this.apiService.estimateFee(transaction)
             .subscribe(
@@ -193,14 +200,8 @@ export class SendComponent implements OnInit, OnDestroy {
                     if (error.status === 0) {
                         // this.genericModalService.openModal(null, null);
                     } else if (error.status >= 400) {
-
+                        this.notFunds = error.error.errors[0].message;
                         this.apiService.handleException(error);
-
-                        if (!error.json().errors[0]) {
-                        } else {
-                            // this.genericModalService.openModal(null, error.json().errors[0].message);
-                            this.apiError = error.json().errors[0].message;
-                        }
                     }
                 },
                 () => {
@@ -343,6 +344,11 @@ export class SendComponent implements OnInit, OnDestroy {
                     }
                 }
             );
+    }
+
+    public onCopiedClick() {
+        this.snackBar.open('The transaction ID has been copied to your clipboard.', null, { duration: 3000, panelClass: ['snackbar-success'] });
+        return false;
     }
 
     // public get sentAmount(): number {

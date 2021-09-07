@@ -8,6 +8,7 @@ export class DetailsService {
     static singletonInstance: DetailsService;
 
     public item: any;
+    public rutaTransaction = false;
 
     constructor() {
 
@@ -21,10 +22,12 @@ export class DetailsService {
 
     show(item: any) {
         this.item = item;
+        this.rutaTransaction = true;
     }
 
     hide() {
         this.item = null;
+        this.rutaTransaction = false;
     }
 
     get opened(): boolean {

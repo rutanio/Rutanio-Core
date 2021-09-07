@@ -58,7 +58,7 @@ export class ToolsComponent implements OnInit {
     }
 
     public onCopiedClick() {
-        this.snackBar.open('The extended public key has been copied to your clipboard.', null, { duration: 3000 });
+        this.snackBar.open('The extended public key has been copied to your clipboard.', null, { duration: 3000, panelClass: ['snackbar-success'] });
         return false;
     }
 }

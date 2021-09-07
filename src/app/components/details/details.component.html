@@ -8,28 +8,28 @@
     <div class="details-row" *ngIf="transaction.transactionType == 'received'">
         <div class="details-row-title">Total Amount</div>
         <div class="details-row-value">{{ transaction.transactionAmount | coinNotation }}
-            <small>{{ coinUnit }}</small>
+            <small class="coinUnit">{{ coinUnit }}</small>
         </div>
     </div>
 
     <div class="details-row" *ngIf="transaction.transactionType == 'sent'">
         <div class="details-row-title">Total Amount</div>
         <div class="details-row-value">{{ transaction.transactionAmount + transaction.transactionFee | coinNotation }}
-            <small>{{ coinUnit }}</small>
+            <small class="coinUnit">{{ coinUnit }}</small>
         </div>
     </div>
 
     <div class="details-row" *ngIf="transaction.transactionType == 'sent'">
         <div class="details-row-title">Amount Sent</div>
         <div class="details-row-value">{{ transaction.transactionAmount | coinNotation }}
-            <small>{{ coinUnit }}</small>
+            <small class="coinUnit">{{ coinUnit }}</small>
         </div>
     </div>
 
     <div class="details-row" *ngIf="transaction.transactionType == 'sent'">
         <div class="details-row-title">Fee</div>
         <div class="details-row-value">{{ transaction.transactionFee | coinNotation }}
-            <small>{{ coinUnit }}</small>
+            <small class="coinUnit">{{ coinUnit }}</small>
         </div>
     </div>
 
@@ -54,10 +54,26 @@
     <div class="details-row">
         <div class="details-row-title">Transaction ID</div>
         <div class="details-row-value">
-            <code [title]="transaction.transactionId">{{ transaction.transactionId.substring(0, 12) }}...</code>
+            <p>{{ transaction.transactionId }}</p>
             <button mat-icon-button ngbTooltip="Copy to clipboard" [cdkCopyToClipboard]="transaction.transactionId" (click)="onCopiedClick()">
                 <mat-icon>content_copy</mat-icon>
             </button>
+        </div>
+    </div>
+
+    <div class="details-row" *ngIf="transaction.transactionOriginAddress.length > 0">
+        <div class="details-row-title">Origin Address</div>
+        <div>
+            <ng-container *ngFor="let originAddress of transaction.transactionOriginAddress" >
+                <p>{{ originAddress }}</p>
+            </ng-container>
+        </div>
+    </div>
+
+    <div class="details-row" *ngIf="transaction.transactionDestinyAddress !== ''">
+        <div class="details-row-title">Destiny Address</div>
+        <div class="details-row-value">
+            <p>{{ transaction.transactionDestinyAddress }}</p>
         </div>
     </div>
 

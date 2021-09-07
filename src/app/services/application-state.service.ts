@@ -34,12 +34,12 @@ export class ApplicationStateService {
 
             // TODO: These properties are deprecated, refactor!
             this.mode = localStorage.getItem('Network:Mode') || 'full';
-            this.network = localStorage.getItem('Network:Network') || 'RutanioMain';
+            this.network = localStorage.getItem('Network:Network') || 'rutaniomain';
             this.path = localStorage.getItem('Network:Path') || '';
 
             this.daemon = {
                 mode: localStorage.getItem('Network:Mode') || 'full',
-                network: localStorage.getItem('Network:Network') || 'RutanioMain',
+                network: localStorage.getItem('Network:Network') || 'rutaniomain',
                 path: localStorage.getItem('Network:Path') || '',
                 datafolder: localStorage.getItem('Network:DataFolder') || ''
             };
@@ -83,7 +83,7 @@ export class ApplicationStateService {
 
     shutdownDelayed = false;
 
-    /** Indicates if we are connected from City Hub with the Rutanio Core daemon. */
+    /** Indicates if we are connected from City Hub with the City Chain daemon. */
     connected = false;
 
     changingMode = false;

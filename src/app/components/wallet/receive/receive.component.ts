@@ -54,7 +54,7 @@ export class ReceiveComponent implements OnInit, OnDestroy {
     }
 
     public onCopiedClick() {
-        this.snackBar.open('Your address has been copied to your clipboard.', null, { duration: 3000 });
+        this.snackBar.open('Your address has been copied to your clipboard.', null, { duration: 3000, panelClass: ['snackbar-success'] });
         return false;
     }
 
@@ -79,7 +79,7 @@ export class ReceiveComponent implements OnInit, OnDestroy {
         this.apiService.getFirstReceiveAddress(walletInfo)
             .subscribe(
                 response => {
-                    this.address = response.addresses[0].address;
+                    this.address = response;
                     this.qrString = 'ruta:' + response;
                 },
                 error => {
@@ -109,7 +109,7 @@ export class ReceiveComponent implements OnInit, OnDestroy {
 
         const address = address0;
         this.address = address;
-        this.qrString = 'ruta:' + address;
+        this.qrString = 'city:' + address;
     }
 
     private getAddress(node, network) {

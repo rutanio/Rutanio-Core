@@ -10,13 +10,171 @@
         }
     }
 
-    div[fxLayoutAlign] { padding:10px; padding-left: 25px; padding-top:15px;}
+    p {
+        text-align: justify;
+    }
+
+
+
+    // div[fxLayoutAlign] { padding:10px; padding-left: 25px; padding-top:15px;}
 
     .dashboard-card {
         //height: 100%;
         //margin: 20px;
-        min-height: 150px;
+        min-height: 120px;
         //width: 100%;
+    }
+
+    .balance-card {
+        background-image: url('../../../assets/rutanio-core/card-background.png');
+        //height: 100%;
+        //margin: 20px;
+        color: white;
+        padding: 40px;
+        min-height: 120px;
+        min-width: 360px;
+        //width: 100%;
+    }
+
+    .balance-card > * .mat-card-title {
+        color: white;
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .balanceTitle {
+        display: flex;
+        align-items: center;
+    }
+
+    .balanceTitle > p {
+        margin: 0 5px 0 0;
+    }
+
+    .balanceToolTip {
+        width: 17px;
+        height: 17px;
+        font-size: 17px;
+        margin-top: 5px;
+    }
+
+    .balance-card > * .mat-card-subtitle > h4 {
+        color: white;
+    }
+
+    .balance-card > * .mat-card-content {
+        color: white;
+    }
+
+    .mat-card-title {
+        text-align: left;
+    }
+
+    .mat-card-subtitle > h4 {
+        color: white;
+    }
+
+    .mat-card-content > p {
+        font-size: 2rem;
+    }
+
+    .mat-card-content > p > em {
+        font-size: 1rem;
+    }
+
+    .text-uppercase {
+        font-size: medium;
+    }
+
+    .internal-cards {
+        color: white;
+        padding: 40px;
+        height: 260px !important;
+    }
+
+    .connect {
+        background: linear-gradient(45deg, #52185e 50%, #5fecff);
+        background-size: cover;
+    }
+
+    .community {
+        background: linear-gradient(45deg, #52185e 50%, #5fecff);
+        background-size: cover;
+    }
+
+    .learn {
+        background: linear-gradient(45deg, #52185e 50%, #5fecff);
+        background-size: cover;
+    }
+
+    .notifications {
+        background-image: url('../../../assets/rutanio-core/banner.png') !important;
+        background-repeat: no-repeat;
+        background-size: cover;
+        min-width: 300px !important;
+    }
+
+    .colored {
+        background-color: #3f0f79;
+    }
+
+    .balance-buttons {
+        display: flex;
+        flex-flow: column;
+        margin-left: 20px;
+        justify-content: center;
+    }
+
+    .balance-card > a , .internal-cards > a, .dashboard-send, .dashboard-receive {
+        width: 120px;
+        background: linear-gradient(to bottom left, #5fecff, #52185e);
+        background-size: cover;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 100;
+        text-decoration: none;
+    }
+
+    .dashboard-receive {
+        margin-top: -6px;
+    }
+
+    .mat-card-actions {
+        margin-left: 0px;
+    }
+
+    .card-image {
+        text-align: center !important;
+        width: 20%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+
+    }
+
+    .internal-content {
+        margin-bottom: 70px !important;
+        height: 100px;
+        text-align: left !important;
+    }
+
+    .cancel-button {
+        color: #3f0f79 !important;
+        margin-bottom: 20px;
+        margin-left: 0px !important;
+        background: #b7e5f9;
+    }
+
+
+
+    .dashboard-card-know-us {
+        height: 180px;
+        background: white !important;
+
+        .card-logo {
+            height: 180px !important;
+        }
     }
 
     .mat-grid-tile .mat-figure
@@ -29,7 +187,7 @@
     }
 
     .dashboard-info-icon {
-        float: right;
+        color: white;
         cursor: default;
     }
 
@@ -51,8 +209,9 @@
         cursor: pointer;
     }
 
-    mat-card {
-        margin-bottom: 20px;
+    .mat-card {
+        margin-bottom: auto;
+        height: 120px;
     }
 
     .dashboard-split-card {
@@ -83,7 +242,7 @@
         color: red;
     }
 
-    .marketprice-larger 
+    .marketprice-larger
     {
         font-size: 1.2rem;
     }

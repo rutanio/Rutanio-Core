@@ -4,5 +4,40 @@
         overflow-wrap: break-word;
         display: inline-block;
         width: 100%;
-      }
+    }
+
+    .mat-tab-header {
+        margin-top: 30px;
+        border-bottom: 0;
+    }
+
+    .tools {
+        padding: 0px;
+    }
+
+    .mat-tab-label {
+        background-color: #351049 !important;
+        background-size: cover;
+        color: white;
+        border-radius: 15px;
+        margin: 0 30px;
+    }
+
+    .mat-tab-label-active , .clear-button {
+        background: linear-gradient(to bottom left, #5fecff, #52185e) !important;
+        background-size: cover;
+        color: white;
+    }
+
+    .mat-ink-bar {
+        display: none !important;
+    }
+
+    .tab-pane {
+        background: linear-gradient(to right, #341139, #7f3e88) !important;
+        background-size: cover;
+        padding: 30px;
+        border-radius: 15px;
+    }
+
 }

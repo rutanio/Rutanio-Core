@@ -31,15 +31,15 @@ export class ChainService {
 
             this.availableChains = [
                 { name: 'Rutanio', identity: 'ruta', tooltip: 'Rutanio Core', port: 6782, rpcPort: 6781, apiPort: 39220, wsPort: 39220, network: 'rutaniomain', genesisDate: new Date(2019, 7, 28) },
-                { name: 'Rutanio Node (RegTest)', identity: 'city', tooltip: 'Rutanio Node', port: 14333, rpcPort: 14334, apiPort: 14335, wsPort: 14336, network: 'cityregtest', genesisDate: new Date(2018, 9, 1) },
-                { name: 'Rutanio Node (Test)', identity: 'city', tooltip: 'Rutanio Node', port: 24333, rpcPort: 24334, apiPort: 24335, wsPort: 24336, network: 'citytest', genesisDate: new Date(2018, 9, 1) },
+                { name: 'Rutanio Core (RegTest)', identity: 'city', tooltip: 'Rutanio Core', port: 14333, rpcPort: 14334, apiPort: 14335, wsPort: 14336, network: 'cityregtest', genesisDate: new Date(2018, 9, 1) },
+                { name: 'Rutanio Core (Test)', identity: 'city', tooltip: 'Rutanio Core', port: 24333, rpcPort: 24334, apiPort: 24335, wsPort: 24336, network: 'citytest', genesisDate: new Date(2018, 9, 1) },
 
                 { name: 'Stratis', identity: 'stratis', tooltip: 'Stratis Core', port: 16178, rpcPort: 16174, apiPort: 37221, wsPort: 4336, network: 'stratismain', genesisDate: new Date(2016, 8, 6) },
                 { name: 'Stratis (RegTest)', identity: 'stratis', tooltip: 'Stratis Core', port: 18444, rpcPort: 18442, apiPort: 37221, wsPort: 4336, network: 'stratisregtest', genesisDate: new Date(2017, 5, 16) },
                 { name: 'Stratis (Test)', identity: 'stratis', tooltip: 'Stratis Core', port: 26178, rpcPort: 26174, apiPort: 38221, wsPort: 4336, network: 'stratistest', genesisDate: new Date(2017, 5, 4) },
 
-                { name: 'Bitcoin', identity: 'bitcoin', tooltip: 'Rutanio Node: Bitcoin', port: 8333, rpcPort: 8332, apiPort: 37220, wsPort: 4336, network: 'bitcoinmain', genesisDate: new Date(2009, 1, 3) },
-                { name: 'Bitcoin (Test)', identity: 'bitcoin', tooltip: 'Rutanio Node: Bitcoin', port: 18333, rpcPort: 18332, apiPort: 38220, wsPort: 4336, network: 'bitcointest', genesisDate: new Date(2009, 1, 3) },
+                { name: 'Bitcoin', identity: 'bitcoin', tooltip: 'Rutanio Core: Bitcoin', port: 8333, rpcPort: 8332, apiPort: 37220, wsPort: 4336, network: 'bitcoinmain', genesisDate: new Date(2009, 1, 3) },
+                { name: 'Bitcoin (Test)', identity: 'bitcoin', tooltip: 'Rutanio Core: Bitcoin', port: 18333, rpcPort: 18332, apiPort: 38220, wsPort: 4336, network: 'bitcointest', genesisDate: new Date(2009, 1, 3) },
             ];
 
             ChainService.singletonInstance = this;

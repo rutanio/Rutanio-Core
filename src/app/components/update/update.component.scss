@@ -1,13 +1,39 @@
 .update {
-    
+
 
     .update-card {
-
+        background-image: url('../../../assets/rutanio-core/card-background.png');
+        background-size: cover;
+        color: white;
+        display: flex;
+        flex-flow: column;
+    }
+    
+    .update-card > * button {
+        background: linear-gradient(to bottom left, #5fecff, #52185e) !important;
+        background-size: cover;
+        margin-left: 20px;
+        color: white !important;
     }
 
+    .update-card > .mat-card-header { order: 1;}
+
+    .update-card > .mat-card-actions {
+        order: 2;
+        margin: 10px 0px;
+        padding: 0;
+    }
+
+    .update-card > .mat-card-content { order: 3;}
+
     .update-card-header-image {
-        background-image: url('../../../assets/city/logo.svg');
+        background-image: url('../../../assets/rutanio-core/logo.png');
         background-size: cover;
+        border-radius: 0px;
       }
+
+      .update-card .mat-card-header , .update-card .mat-card-header .mat-card-header-text .mat-card-subtitle {
+        color: white;
+    }
 
 }

@@ -7,6 +7,8 @@ import { WalletCreation } from '../classes/wallet-creation';
 import { WalletRecovery } from '../classes/wallet-recovery';
 import { WalletLoad } from '../classes/wallet-load';
 import { WalletInfo } from '../classes/wallet-info';
+import { FilteredWalletInfo } from '@models/filtered-wallet-info';
+import { FullFilteredWalletInfo } from '@models/full-filtered-wallet-info';
 import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
@@ -19,6 +21,8 @@ import { HttpErrorResponse, HttpClient, HttpParams, HttpHeaders } from '@angular
 import { TransactionResult } from '../classes/transaction-result';
 import { NotificationService } from './notification.service';
 import { WalletSplit } from '@models/wallet-split';
+import { MessageInfo } from '../classes/message-info';
+import { MessageVerif } from '@models/message-verif';
 
 /**
  * For information on the API specification have a look at our swagger files located at http://localhost:5000/swagger/ when running the daemon
@@ -35,7 +39,7 @@ export class ApiService {
     private daemon;
 
     public apiUrl: string;
-    public apiVersion = 'v2.0-dev'; // This will change into "v1.0-city" in a future update to the City Chain daemon.
+    public apiVersion = 'v2.0-dev'; // This will change into "v1.0-city" in a future update to the Rutanio Core daemon.
     public genesisDate: Date;
     public apiPort: number;
 
@@ -60,6 +64,7 @@ export class ApiService {
     initialize() {
         // Get the current network (main, regtest, testnet), current blockchain (city, stratis, bitcoin) and the mode (full, light, mobile)
         const chain = this.chains.getChain(this.appState.chain, this.appState.network);
+        console.error('chain: ', chain);
 
         // Get the correct name of the chain that was found.
         this.appState.chain = chain.identity;
@@ -82,7 +87,7 @@ export class ApiService {
 
                 if (this.daemon !== 'OK') {
                     this.notifications.add({
-                        title: 'Rutanio Node background error',
+                        title: 'Rutanio Core background error',
                         hint: 'Messages from the background process received in Rutanio Core',
                         message: this.daemon,
                         icon: (this.daemon.indexOf('Rutanio Core was started in development mode') > -1) ? 'build' : 'warning'
@@ -140,6 +145,25 @@ export class ApiService {
             .pipe(switchMap(() => this.http.get(self.apiUrl + '/Network/getbans', { headers: self.headers })))
             .pipe(catchError(this.handleError.bind(this)))
             .pipe(map((response: Response) => response));
+    }
+
+    /**
+     * Get a raw transaction
+     */
+    getRawTransaction(data): Promise<any> {
+        const self = this;
+        const search = new HttpParams({
+            fromObject: {
+                trxid: data,
+                verbose: 'true'
+            }
+        });
+
+        return this.http
+            // .get(this.apiUrl + '/node/getrawtransaction', { headers: this.headers, params: search })
+            .get(self.apiUrl + '/node/getrawtransaction', { headers: this.headers, params: search })
+            .pipe(catchError(this.handleError.bind(this)))
+            .toPromise();
     }
 
     // getAddressBookAddresses(): Observable<any> {
@@ -367,6 +391,21 @@ export class ApiService {
             .pipe(map((response: Response) => response));
     }
 
+    // getWBalance(data: WalletInfo): Observable<any> {
+    //     const search = new HttpParams({
+    //         fromObject: {
+    //             walletName: data.walletName,
+    //             accountName: 'account 0'
+    //         }
+    //     });
+
+    //     return interval(this.pollingInterval)
+    //         .pipe(startWith(0))
+    //         .pipe(switchMap(() => this.http.get('http://143.244.166.169:39220/api/wallet/balance', { headers: this.headers, params: search })))
+    //         .pipe(catchError(this.handleError.bind(this)))
+    //         .pipe(map((response: Response) => response));
+    // }
+
     /**
      * Get the maximum sendable amount for a given fee from the API
      */
@@ -405,6 +444,64 @@ export class ApiService {
     }
 
     /**
+     * Get a filtered history info from the API.
+     */
+    getFullFilteredHistory(data: FullFilteredWalletInfo): Observable<any> {
+        const search = new HttpParams({
+            fromObject: {
+                walletName: data.walletName,
+                accountName: 'account 0'
+            }
+        });
+
+        return interval(this.longPollingInterval)
+            .pipe(startWith(0))
+            .pipe(switchMap(() => this.http.get('http://localhost:39220/api/features/explorer/transactions/history-filter', { headers: this.headers, params: search })))
+            .pipe(catchError(this.handleError.bind(this)))
+            .pipe(map((response: Response) => response));
+    }
+
+    /**
+     * Get a filtered history info from the API.
+     */
+    getFilteredHistory(data: FilteredWalletInfo): Promise<any> {
+        const search = new HttpParams({
+            fromObject: {
+                walletName: data.walletName,
+                fromDate: data.fromDate,
+                address: data.address
+            }
+        });
+
+        return this.http
+            .get('http://localhost:39220/api/features/explorer/transactions/history-filter', { headers: this.headers, params: search })
+            .pipe(catchError(this.handleError.bind(this)))
+            .toPromise();
+        // return interval(this.longPollingInterval)
+        //     .pipe(startWith(0))
+        //     .pipe(switchMap(() => this.http.get('http://localhost:39220/api/features/explorer/transactions/history-filter', { headers: this.headers, params: search })))
+        //     .pipe(catchError(this.handleError.bind(this)))
+        //     .pipe(map((response: Response) => response))
+        //     .toPromise();
+    }
+
+    // getWalletWHistory(data: WalletInfo): Observable<any> {
+    //     const search = new HttpParams({
+    //         fromObject: {
+    //             walletName: data.walletName,
+    //             accountName: 'account 0'
+    //         }
+    //     });
+
+    //     return interval(this.longPollingInterval)
+    //         .pipe(startWith(0))
+    //         .pipe(switchMap(() => this.http.get('http://143.244.166.169:39220/api/Wallet/history', { headers: this.headers, params: search })))
+    //         .pipe(catchError(this.handleError.bind(this)))
+    //         .pipe(map((response: Response) => response));
+    // }
+
+
+    /**
      * Get an unused receive address for a certain wallet from the API.
      */
     getUnusedReceiveAddress(data: WalletInfo): Observable<any> {
@@ -434,6 +531,34 @@ export class ApiService {
 
         return this.http
             .get(this.apiUrl + '/wallet/addresses', { headers: this.headers, params: search })
+            .pipe(catchError(this.handleError.bind(this)))
+            .pipe(map((response: Response) => response));
+    }
+
+    // getWFirstReceiveAddress(data: WalletInfo): Observable<any> {
+    //     const search = new HttpParams({
+    //         fromObject: {
+    //             walletName: data.walletName,
+    //             accountName: 'account 0'
+    //         }
+    //     });
+
+    //     return this.http
+    //         .get('http://143.244.166.169:39220/api/Wallet/addresses', { headers: this.headers, params: search })
+    //         .pipe(catchError(this.handleError.bind(this)))
+    //         .pipe(map((response: Response) => response));
+    // }
+
+    signMessage(data: MessageInfo): Observable<any> {
+        return this.http
+            .post(this.apiUrl + '/wallet/signmessage', JSON.stringify(data), { headers: this.headers })
+            .pipe(catchError(this.handleError.bind(this)))
+            .pipe(map((response: Response) => response));
+    }
+
+    verifyMessage(data: MessageVerif): Observable<any> {
+        return this.http
+            .post(this.apiUrl + '/wallet/verifymessage', JSON.stringify(data), { headers: this.headers })
             .pipe(catchError(this.handleError.bind(this)))
             .pipe(map((response: Response) => response));
     }
@@ -490,6 +615,21 @@ export class ApiService {
             .pipe(catchError(this.handleError.bind(this)))
             .pipe(map((response: Response) => response));
     }
+
+    // estimateWFee(data: FeeEstimation): Observable<any> {
+    //     // const search = new HttpParams()
+    //     //     .set('walletName', data.walletName)
+    //     //     .set('accountName', data.accountName)
+    //     //     .set('recipients[0].destinationAddress', data.recipients[0].destinationAddress)
+    //     //     .set('recipients[0].amount', data.recipients[0].amount)
+    //     //     .set('feeType', data.feeType)
+    //     //     .set('allowUnconfirmed', 'true');
+
+    //     return this.http
+    //         .post('http://143.244.166.169:39220/api/wallet/estimate-txfee', JSON.stringify(data), { headers: this.headers })
+    //         .pipe(catchError(this.handleError.bind(this)))
+    //         .pipe(map((response: Response) => response));
+    // }
 
     /**
      * Build a transaction
@@ -550,6 +690,14 @@ export class ApiService {
             .post(this.apiUrl + '/node/shutdown', 'true', { headers: this.headers })
             .pipe(catchError(this.handleError.bind(this)))
             .pipe(map((response: Response) => response));
+    }
+
+    /**
+     * Get last log output with stats
+     */
+    getStats(): Observable<any> {
+        const self = this;
+        return this.http.get(self.apiUrl + '/Dashboard/Stats', {responseType: 'text'});
     }
 
     /**
@@ -633,7 +781,7 @@ export class ApiService {
             .pipe(map((response: Response) => response));
     }
 
-    /** Use this to handle error in the initial startup (wallet/files) of City Hub. */
+    /** Use this to handle error in the initial startup (wallet/files) of Rutanio Core. */
     handleInitialError(error: HttpErrorResponse | any) {
         // Only show snackbar errors when we have connected. Initially we will receive some errors due to aggresive
         // attempts at connecting to the node.
@@ -671,7 +819,7 @@ export class ApiService {
 
         this.notifications.add({
             title: 'Communication error',
-            hint: 'These types of errors are not uncommon, happens when there is issues communicating between Rutanio Core and Rutanio Node background process',
+            hint: 'These types of errors are not uncommon, happens when there is issues communicating between Rutanio Core and Rutanio Core background process',
             message: errorMessage,
             icon: 'warning'
         });

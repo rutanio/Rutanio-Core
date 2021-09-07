@@ -1,7 +1,21 @@
 .login
 {
-    height: 100%;
-    width: 100%;
+
+    .header {
+        width: 60%;
+        color: white;
+        font-size: 2.4rem;
+        text-align: left;
+        color: #fa4965;
+    }
+
+    .subheader {
+        width: 60%;
+        color: white;
+        font-size: 1.1rem;
+        text-align: left;
+        margin: 3rem 0;
+    }
 
     .login-container
     {
@@ -13,27 +27,87 @@
 
     .login-content
     {
-        width: 44%;
+        width: 55%;
         min-width: 240px;
-        text-align: center;
         display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        min-height: 260px;
-        margin-top: 10%;
+        justify-content: center;
+        background-color: #341139;
+        background-repeat: no-repeat;
+        background-size: cover;
     }
 
-    .login-unlock-button {
-        margin-bottom: 20px;
+    .inner-content {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
     }
 
-    .login-cancel-button {
-        margin-right: 10px;
+    .login-buttons{
+        display: flex;
+        flex-flow: row;
+        justify-content: space-between;
+    }
+
+    .login-unlock-button, .login-create-button {
+        color: #fa4965;
+    }
+    .login-cancel-button, .login-restore-button {
+        color: #5fecff;
+    }
+
+    .login-unlock-button , .login-cancel-button {
+        background-color: #341139;
+        padding: 10px 0;
+        border-radius: 10px;
+        width: 45%;
+        font-size: 1rem;
+        font-weight: bold;
+        line-height: normal;
+    }
+
+    .login-create-button , .login-restore-button {
+        background-color: #341139;
+        padding: 10px 0;
+        border-radius: 10px;
+        width: 90px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: normal;
     }
 
     .login-logo
     {
+        width: 60%; 
+    }
+
+    mat-form-field {
         width: 100%;
+    }
+
+    .mat-form-field-appearance-fill .mat-form-field-infix {
+        padding: 0.5em 0;
+    }
+
+    .mat-form-field-appearance-fill .mat-form-field-flex {
+        background: #341139;
+        border-radius: 10px;
+    }
+
+    .mat-form-field-underline {
+        display: none;
+    }
+
+    mat-label {
+        color: white !important;
+    }
+    .mat-select .mat-select-value, input, .mat-select-arrow {
+        font-size: 0.9rem;
+        color: white !important;
+    }
+
+    .error-messages {
+        color: red;
     }
 
     .login-header{
@@ -41,46 +115,86 @@
     }
 
     .login-accounts {
+        width: 60%;
         flex-grow: 0;
+        color: white;
     }
 
     .login-actions
     {
+        margin-bottom: 30px;
         flex-grow: 0;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         display: flex;
-        margin-top: 20px;
+        position: sticky;
+    }
+
+    .login-actions > p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .extra-opts {
+        color: white;
+    }
+
+    .extra-opts .mat-button-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    .extra-opts .mat-button-wrapper .material-icons {
+        margin-right: 10px;
     }
 
     .login-mode
     {
+        margin: 6px 0px;
         flex-grow: 2;
         align-items: flex-end;
-        justify-content: center;
         display: flex;
-        margin-bottom: 20px;
+        flex-flow: column;
+    }
+
+    .login-mode button {
+        width: 150px;
+        text-align: start;
+    }
+
+    .lower-info {
+        width: 60%;
+        display: flex;
+        flex-flow: row;
+        margin-top: 30px;
     }
 
     .login-banner
     {
-        background-color: #280d2d;
-        width: 56%;
-        background-image: url('../../../assets/city/splash-image.jpg');
+        display: flex;
+        width: 45%;
+        background: linear-gradient(to bottom left, #5fecff, #52185e);
         background-repeat: no-repeat;
         background-size: cover;
+        background-position: right;
         text-align: center;
+        justify-content: center;
+        align-items: center;
     }
 
     .login-banner-content
     {
-        margin: 20%;
+        margin: 10%;
     }
 
     .login-banner-text
     {
-        padding-top: 30px;
-        text-align: right;
+        margin: 14px 0px;
+        flex-grow: 2;
+        align-items: flex-end;
+        display: flex;
+        flex-flow: column;
+        color: white;
     }
 
     .login-mode-mobile {
@@ -93,10 +207,6 @@
     {
         .login-container {
             flex-direction: column;
-        }
-
-        .login-content{
-            width: 100%;
         }
 
         .login-banner {

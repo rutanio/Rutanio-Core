@@ -23,6 +23,11 @@ import { ReportComponent } from '../report/report.component';
 import { SettingsService } from 'src/app/services/settings.service';
 import { IdentityService } from 'src/app/services/identity.service';
 import { IdentityContainer } from '@models/identity';
+import { registerLocaleData } from '@angular/common';
+import { LocaleService } from 'src/app/services/locale.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+
 
 @Component({
     selector: 'app-root',
@@ -72,7 +77,9 @@ export class RootComponent implements OnInit, OnDestroy {
         public detailsService: DetailsService,
         public identityService: IdentityService,
         public settings: SettingsService,
+        public localeService: LocaleService,
         private apiService: ApiService,
+        public snackBar: MatSnackBar,
         private walletService: WalletService,
         private readonly cd: ChangeDetectorRef,
         public dialog: MatDialog,
@@ -101,7 +108,7 @@ export class RootComponent implements OnInit, OnDestroy {
                 this.appState.shutdownInProgress = true;
                 this.cd.detectChanges();
 
-                // If the exit takes a very long time, we want to allow users to forcefully exit Rutanio Core.
+                // If the exit takes a very long time, we want to allow users to forcefully exit City Hub.
                 setTimeout(() => {
                     this.appState.shutdownDelayed = true;
                     this.cd.detectChanges();
@@ -126,7 +133,8 @@ export class RootComponent implements OnInit, OnDestroy {
                     data: {
                         title: 'Failed to start Rutanio Node background daemon',
                         error,
-                        lines: this.log.lastEntries()
+                        lines: this.log.lastEntries(),
+                        specific: this.log.catchErrorLogs()
                     }
                 });
 
@@ -188,45 +196,34 @@ export class RootComponent implements OnInit, OnDestroy {
     }
 
     get StakingStatus(): string {
-        if (this.walletService.stakingEnabled) {
-            const walletHeight = ((this.walletService.stakingWeight / 100000000).toLocaleString('en-US', { maximumFractionDigits: 8 }));
-            const networkWeight = ((this.walletService.netStakingWeight / 100000000).toLocaleString('en-US', { maximumFractionDigits: 2 }));
-            const percertNetwork = ((this.walletService.stakingWeight / this.walletService.netStakingWeight) * 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+        if (this.walletService.stakingEnabled){
+            const walletHeight = ((this.walletService.stakingWeight / 100000000).toLocaleString(this.localeService.locale, { maximumFractionDigits: 8 }));
+            const networkWeight = ((this.walletService.netStakingWeight / 100000000).toLocaleString(this.localeService.locale, { maximumFractionDigits: 2 }));
+            const percertNetwork = ((this.walletService.stakingWeight / this.walletService.netStakingWeight) * 100).toLocaleString(this.localeService.locale, { maximumFractionDigits: 2 });
 
-            return `Staking: Enable \nWeight: ${walletHeight} RUTAs \nNetwork weight: ${networkWeight} RUTAs \n% Network: ${percertNetwork}% \nExpected reward time: ${this.walletService.dateTime} `;
-        }
-    }
-
-
-    get identityTooltip(): string {
-        if (this.identityService.identity) {
-            const name = this.identityService.identity.content.name || this.identityService.identity.content.identifier;
-            const alias = this.identityService.identity.content.alias ? ' (@' + this.identityService.identity.content.alias + ')' : '';
-            const title = this.identityService.identity.content.title ? '\n' + this.identityService.identity.content.title : '';
-
-            return `${name}${alias}\nID: ${this.identityService.identity.content.identifier}${title}`;
+            return `Staking: Enable \nWeight: ${walletHeight} RUTA \nNetwork weight: ${networkWeight} RUTA \n% Network: ${percertNetwork}% \nExpected reward time: ${this.walletService.dateTime} `;
         }
     }
 
     get networkStatusTooltip(): string {
         if (this.walletService.generalInfo) {
-            return `Connections: ${this.walletService.generalInfo.connectedNodes}\nBlock Height: ${this.walletService.generalInfo.chainTip}\nSynced: ${this.walletService.percentSynced}`;
+            return `Connections: ${this.walletService.generalInfo.connectedNodes}\nBlock Height: ${this.walletService.generalInfo.chainTip.toLocaleString(this.localeService.locale)} ${this.walletService.generalInfo.isChainSynced ? '' : `\n${this.walletService.daysAhead}`}${ this.walletService.generalInfo.isChainSynced ? `\nSynced: ` + this.walletService.percentSynced : ''}`;
         }
     }
 
     /** Whenever we are downloading, show the download icon. */
     get networkShowDownload(): boolean {
-        return !this.appState.pageMode && this.walletService.generalInfo && this.walletService.generalInfo.connectedNodes !== 0 && this.walletService.percentSyncedNumber !== 100;
+        return this.walletService.generalInfo && this.walletService.generalInfo.connectedNodes !== 0 && !this.walletService.generalInfo.isChainSynced;
     }
 
     /** Whenever we are fully synced, show done icon. */
     get networkShowDone(): boolean {
-        return !this.appState.pageMode && this.walletService.generalInfo && this.walletService.generalInfo.connectedNodes !== 0 && this.walletService.percentSyncedNumber === 100;
+        return this.walletService.generalInfo && this.walletService.generalInfo.isChainSynced && this.walletService.generalInfo.connectedNodes !== 0 ;
     }
 
     /** Whenever we have zero connections on the network, show the offline icon. */
     get networkShowOffline(): boolean {
-        return !this.appState.pageMode && this.walletService.generalInfo && this.walletService.generalInfo.connectedNodes === 0;
+        return this.walletService.generalInfo && this.walletService.generalInfo.connectedNodes === 0;
     }
 
     get appTitle$(): Observable<string> {
@@ -243,6 +240,13 @@ export class RootComponent implements OnInit, OnDestroy {
 
     checkForUpdates() {
         this.updateService.checkForUpdate();
+        if (!this.updateService.available) {
+            this.snackBar.open('Wallet is up to date', null, { duration: 3000, panelClass: ['snackbar-success'], verticalPosition: 'top' });
+        }
+    }
+
+    checkSyncDates() {
+        this.walletService.fetchBlockData();
     }
 
     closeDetails(reason: string) {
@@ -275,6 +279,18 @@ export class RootComponent implements OnInit, OnDestroy {
             // We'll check for updates in the startup of the app.
             this.checkForUpdates();
         }, 12000);
+
+        setInterval(() => {
+            this.checkForUpdates();
+        }, 60000 * 60 * 6);
+
+        if (!this.generalInfo?.isChainSynced) {
+            setInterval(() => {
+                if (this.router.url !== '/load') {
+                    this.checkSyncDates();
+                }
+            }, 5000);
+        }
 
         if (this.router.url !== '/load') {
             this.router.navigateByUrl('/load');

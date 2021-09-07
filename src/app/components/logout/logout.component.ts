@@ -30,12 +30,12 @@ export class LogoutComponent {
 
     }
 
-    logout() {
+    async logout() {
         this.loggingOut = true;
 
         console.log('Logout is running');
 
-        this.wallet.stop();
+        await this.wallet.stop();
 
         this.authService.setAnonymous();
 
@@ -52,7 +52,7 @@ export class LogoutComponent {
             );
 
         // Triggers the reboot in main.ts
-        this.ngZone.runOutsideAngular(() => BootController.getbootControl().restart());
+        // this.ngZone.runOutsideAngular(() => BootController.getbootControl().restart());
 
         this.router.navigateByUrl('/login');
     }

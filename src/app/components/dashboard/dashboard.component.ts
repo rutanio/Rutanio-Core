@@ -7,11 +7,15 @@ import { ApplicationStateService } from '../../services/application-state.servic
 import { WalletService } from '../../services/wallet.service';
 import { CoinService } from 'src/app/services/coin.service';
 import { Subscription } from 'rxjs';
-
 import { CoinAsset } from 'src/app/classes/coin-asset';
 import { NotificationService } from 'src/app/services/notification.service';
 import { P2pb2bAsset } from 'src/app/classes/p2pb2b2-asset';
 import { AppModes } from 'src/app/shared/app-modes';
+import { LocaleService } from 'src/app/services/locale.service';
+import { ElectronService } from 'ngx-electron';
+import { UpdateService } from '../../services/update.service';
+
+
 
 @Component({
     selector: 'app-dashboard',
@@ -32,25 +36,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     constructor(
         private apiService: ApiService,
-      //  private coincap: CoincapService,
         private coin: CoinService,
-        private globalService: GlobalService,
+        public globalService: GlobalService,
         public appState: ApplicationStateService,
         public notifications: NotificationService,
         private detailsService: DetailsService,
         public wallet: WalletService,
         public appModes: AppModes,
-        private fb: FormBuilder) {
+        private fb: FormBuilder,
+        public localeService: LocaleService,
+        private electronService: ElectronService,
+        public updateService: UpdateService) {
 
         // Make sure we update wallet at higher frequency.
         this.wallet.active = true;
     }
 
-    ngOnInit() {
-       // this.startSubscriptions();
+    checkForUpdates() {
+        this.updateService.checkForUpdate();
     }
 
-   changeTicker(change) {
+    ngOnInit() {
+        // this.startSubscriptions();
+        this.checkForUpdates();
+    }
+
+    changeTicker(change) {
         this.selectedCoinTickerIndex += change;
 
         if (this.selectedCoinTickerIndex < 0) {
@@ -66,13 +77,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     }
 
-    /*private startSubscriptions() {
+    get isIBD(): boolean {
+        return this.wallet.generalInfo && !this.wallet.generalInfo.isChainSynced && this.wallet.generalInfo.connectedNodes !== 0;
+    }
 
-        this.subscriptions = [];
+    private startSubscriptions() {
+
+        /*this.subscriptions = [];
 
         let asset = this.appState.chain;
 
-        if (asset === 'ruta') {
+        if (asset === 'city') {
             asset = 'bitcoin'; // Until coincap.io supports CITY, we'll revert to Bitcoin.
         }
 
@@ -121,8 +136,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         //             this.reactivate();
         //         }
         //     ));
+        */
     }
-    */
 
 
     private mapP2pb2bToAsset(coin: P2pb2bAsset): CoinAsset {
@@ -133,8 +148,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             maxSupply: '0',
             price: coin.last,
             volume24Hr: coin.volume,
-            symbol: 'RUTA',
-            name: 'Rutanio',
+            symbol: 'CITY',
+            name: 'City Coin',
             pair: coin.pair,
             volumepair: coin.volumepair
         };
@@ -158,7 +173,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         };
 
         return asset;
-    }*/
+    }
+    */
 
     private cancelSubscriptions() {
         if (!this.subscriptions) {
@@ -174,6 +190,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     /** Called to cancel and restart all subscriptions. */
     private reactivate() {
         this.cancelSubscriptions();
+       // this.startSubscriptions();
     }
 
     ngOnDestroy() {
