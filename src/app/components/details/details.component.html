@@ -61,26 +61,24 @@
         </div>
     </div>
 
-    <div class="details-row" *ngIf="transaction.transactionOriginAddress.length > 0">
-        <div class="details-row-title">Origin Address</div>
-        <div>
-            <ng-container *ngFor="let originAddress of transaction.transactionOriginAddress" >
-                <p>{{ originAddress }}</p>
-            </ng-container>
+    <div *ngIf="transaction.transactionType !== 'staked'">
+        <div class="details-row" *ngIf="transaction.transactionOriginAddress.length > 0">
+            <div class="details-row-title">Origin Address</div>
+            <div>
+                <ng-container *ngFor="let originAddress of transaction.transactionOriginAddress" >
+                    <p>{{ originAddress }}</p>
+                </ng-container>
+            </div>
+        </div>
+    
+        <div class="details-row" *ngIf="transaction.transactionDestinyAddress.length > 0">
+            <div class="details-row-title">Destiny Address</div>
+            <div>
+                <ng-container *ngFor="let destinyAddress of transaction.transactionDestinyAddress" >
+                    <p>{{ destinyAddress }}</p>
+                </ng-container>
+            </div>
         </div>
     </div>
 
-    <div class="details-row" *ngIf="transaction.transactionDestinyAddress !== ''">
-        <div class="details-row-title">Destiny Address</div>
-        <div class="details-row-value">
-            <p>{{ transaction.transactionDestinyAddress }}</p>
-        </div>
-    </div>
-
-    <!-- <div class="details-row" *ngIf="transaction.transactionType == 'sent'">
-        <div class="details-row-title">Actions</div>
-        <div class="details-row-value">
-            <button mat-flat-button (click)="retry(transaction)">Broadcast (retry)</button>
-        </div>
-    </div> -->
 </div>
