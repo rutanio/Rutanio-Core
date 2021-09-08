@@ -322,18 +322,19 @@ export class WalletService {
             let transactionDestinyAddress;
             if (transaction.type !== 'staked') {
                 const addressListsInputs = [];
+                const addressListsOutputs = [];
                 for (const iterator of transaction.inputs) {
                     addressListsInputs.push(iterator.address);
                 }
                 transactionOriginAddress = addressListsInputs.filter( (val, index) => {
                     return addressListsInputs.indexOf(val) === index;
                 });
-                console.error('transactionOriginAddress: ', transactionOriginAddress);
-                const addressListsOutputs = [];
                 for (const iterator of transaction.payments) {
                     addressListsOutputs.push(iterator.destinationAddress);
                 }
-                transactionDestinyAddress = addressListsOutputs;
+                transactionDestinyAddress = addressListsOutputs.filter( (val, index) => {
+                    return addressListsOutputs.indexOf(val) === index;
+                });
             }
 
             const transactionConfirmedInBlock = transaction.confirmedInBlock;

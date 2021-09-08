@@ -1,6 +1,6 @@
 export class TransactionInfo {
 
-    constructor(transactionType: string, transactionId: string, transactionAmount: number, transactionFee: number, transactionConfirmedInBlock: number, transactionTimestamp: number, transactionOriginAddress: Array<string>, transactionDestinyAddress: string) {
+    constructor(transactionType: string, transactionId: string, transactionAmount: number, transactionFee: number, transactionConfirmedInBlock: number, transactionTimestamp: number, transactionOriginAddress: Array<string>, transactionDestinyAddress: Array<string>) {
       this.transactionType = transactionType;
       this.transactionId = transactionId;
       this.transactionAmount = transactionAmount;
@@ -18,5 +18,5 @@ export class TransactionInfo {
     public transactionConfirmedInBlock?: number;
     public transactionTimestamp: number;
     public transactionOriginAddress: Array<string>;
-    public transactionDestinyAddress: string;
+    public transactionDestinyAddress: Array<string>;
   }
