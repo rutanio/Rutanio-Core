@@ -6,7 +6,7 @@
     "publish": [
         {
             "provider": "github",
-            "owner": "FluidChains",
+            "owner": "Rutanio",
             "repo": "Rutanio-Core",
             "vPrefixedTagName": false
 
