@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     env:
-      DAEMON: '1.0.23'
+      DAEMON: '1.0.24'
       ARCH: 'x64'
       ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
